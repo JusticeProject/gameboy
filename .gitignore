@@ -1,2 +1,4 @@
 pico/build/*
 pico/.vscode/*
+*.o
+*.gb
