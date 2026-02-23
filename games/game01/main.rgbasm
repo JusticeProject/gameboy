@@ -1,11 +1,12 @@
-def ROM_HEADER_ADDRESS      equ $0100
-def ROM_MAIN_ADDRESS        equ $0150
 
-section "header", rom0[ROM_HEADER_ADDRESS]
-    di
-    jr main
+section "header", rom0[$0100]
+entrypoint:
+    di                  ; 1 byte
+    jp main             ; 3 bytes
+    ds ($0150 - @), 0   ; page 60 of book: $0150 - $0104 = $004C = 76, so the assembler will fill
+                        ; the next 76 bytes with 0, giving the required 80 total bytes for the header
 
-section "main", rom0[ROM_MAIN_ADDRESS]
+section "main", rom0
 main:
     ld a, 0
     .loop
