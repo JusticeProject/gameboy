@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(gameboy main.c )
+add_executable(gameboy main.c cartridge.c)
 
 pico_set_program_name(gameboy "gameboy")
 pico_set_program_version(gameboy "0.1")
@@ -55,7 +55,8 @@ target_include_directories(gameboy PRIVATE
 
 # Add any user requested libraries
 target_link_libraries(gameboy 
-        hardware_spi
+        hardware_i2c
+        pico_multicore
         )
 
 pico_add_extra_outputs(gameboy)
