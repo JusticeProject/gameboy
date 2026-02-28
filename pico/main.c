@@ -32,12 +32,12 @@ int main()
         else if ('r' == c)
         {
             stdio_set_translate_crlf(&stdio_usb, true);
-            read_registers();
+            test_read_registers();
         }
         else if ('w' == c)
         {
             stdio_set_translate_crlf(&stdio_usb, true);
-            write_registers();
+            test_write_registers();
         }
         else if ('s' == c)
         {

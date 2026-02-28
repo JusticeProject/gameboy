@@ -6,6 +6,12 @@
 
 //*************************************************************************************************
 
+// GPIO for driving the optocoupler. When set high it turns the optocoupler on and connects the 
+// (active low) RESET pin on the I/O expanders to 5V, thus enabling them. When low the optocoupler is off
+// and the (active low) RESET pin is pulled to 0V, thus disabling the I/O expanders.
+// GPIO 13 which is physical pin 17. Uses a 470 ohm current limiting resistor.
+#define OPTOCOUPLER_GPIO_PIN 13
+
 // i2c config
 #define I2C_PORT i2c1
 // SDA is GPIO 14, physical pin 19
@@ -28,6 +34,15 @@
 
 void init_cartridge()
 {
+    // bring the I/O expanders out of reset, give them some time to stabilize
+    gpio_init(OPTOCOUPLER_GPIO_PIN);
+    gpio_set_dir(OPTOCOUPLER_GPIO_PIN, GPIO_OUT);
+    gpio_set_drive_strength(OPTOCOUPLER_GPIO_PIN, GPIO_DRIVE_STRENGTH_8MA);
+    gpio_put(OPTOCOUPLER_GPIO_PIN, false);
+    sleep_ms(1);
+    gpio_put(OPTOCOUPLER_GPIO_PIN, true);
+    sleep_ms(1);
+
     // i2c Initialisation. Using it at 100Khz.
     i2c_init(I2C_PORT, 100*1000);
     gpio_set_function(I2C_SDA_GPIO_PIN, GPIO_FUNC_I2C);
@@ -35,33 +50,40 @@ void init_cartridge()
     // TODO: the logic level converter board also has pull-ups, so maybe I don't need to enable them here
     gpio_pull_up(I2C_SDA_GPIO_PIN);
     gpio_pull_up(I2C_SCL_GPIO_PIN);
+
+    // TODO: init all GPIOs on I/O expanders to inputs and then wait? The reset should have done that.
+    // TODO: configure control signals (RD, WR, CS/MREQ) to outputs, then set them high, or set them high first before configuring to output?
+    // TODO: init address bus to outputs then set to addr 0
+    // TODO: later on we will set RD low and read the data
 }
 
 //*************************************************************************************************
 
-void read_registers()
+void read_registers(uint8_t i2c_addr)
 {
     uint8_t reg_addr = 0;
     uint8_t buffer[2];
 
+    printf("reading i2c addr 0x%x\n", i2c_addr);
+
     // write the register address first, keep control of the bus, then read the value
     reg_addr = REG_ADDR_IOCON;
-    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, &reg_addr, 1, true); // true to keep master control of bus
-    int bytes_read = i2c_read_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 1, false);
+    int bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, &reg_addr, 1, true); // true to keep master control of bus
+    int bytes_read = i2c_read_blocking(I2C_PORT, i2c_addr, buffer, 1, false);
 
     printf("for reg_addr = 0x%x: bytes_written = %d, bytes_read = %d, buffer[0] = 0x%x\n", 
         reg_addr, bytes_written, bytes_read, buffer[0]);
     
     reg_addr = REG_ADDR_IODIRA;
-    bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, &reg_addr, 1, true); // true to keep master control of bus
-    bytes_read = i2c_read_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 2, false);
+    bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, &reg_addr, 1, true); // true to keep master control of bus
+    bytes_read = i2c_read_blocking(I2C_PORT, i2c_addr, buffer, 2, false);
 
     printf("for reg_addr = 0x%x: bytes_written = %d, bytes_read = %d, buffer[0] = 0x%x, buffer[1] = 0x%x\n", 
         reg_addr, bytes_written, bytes_read, buffer[0], buffer[1]);
 
     reg_addr = REG_ADDR_GPIOA;
-    bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, &reg_addr, 1, true); // true to keep master control of bus
-    bytes_read = i2c_read_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 2, false);
+    bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, &reg_addr, 1, true); // true to keep master control of bus
+    bytes_read = i2c_read_blocking(I2C_PORT, i2c_addr, buffer, 2, false);
 
     printf("for reg_addr = 0x%x: bytes_written = %d, bytes_read = %d, buffer[0] = 0x%x, buffer[1] = 0x%x\n", 
         reg_addr, bytes_written, bytes_read, buffer[0], buffer[1]);
@@ -69,23 +91,38 @@ void read_registers()
 
 //*************************************************************************************************
 
-void write_registers()
+void write_registers(uint8_t i2c_addr)
 {
-    // TODO: when rebooting the Pico, the GPIO expander does not reboot. How should I handle this?
-    // We want the GPIO to default to high impedance.
+    printf("writing i2c addr 0x%x\n", i2c_addr);
 
     // First byte is address, the following bytes are data.
     // Change all the GPIO directions to be outputs.
     uint8_t buffer[] = {REG_ADDR_IODIRA, 0x00, 0x00};
-    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 3, false); 
+    int bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, buffer, 3, false); 
     printf("for reg_addr = 0x%x: bytes_written = %d\n", REG_ADDR_IODIRA, bytes_written);
 
     // Set all GPIO high.
     buffer[0] = REG_ADDR_GPIOA;
     buffer[1] = 0xFF;
     buffer[2] = 0xFF;
-    bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 3, false); 
+    bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, buffer, 3, false); 
     printf("for reg_addr = 0x%x: bytes_written = %d\n", REG_ADDR_IODIRA, bytes_written);
+}
+
+//*************************************************************************************************
+
+void test_read_registers()
+{
+    read_registers(I2C_ADDR_FOR_CART_ADDR);
+    read_registers(I2C_ADDR_FOR_CART_DATA);
+}
+
+//*************************************************************************************************
+
+void test_write_registers()
+{
+    write_registers(I2C_ADDR_FOR_CART_ADDR);
+    write_registers(I2C_ADDR_FOR_CART_DATA);
 }
 
 //*************************************************************************************************
@@ -103,12 +140,12 @@ void scan_bus()
     printf("@ = device found\n");
     printf(". = no device found\n");
     printf("  = not scanned (reserved address)\n\n");
-    printf("   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n");
+    printf("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n");
 
     for (int addr = 0; addr < (1 << 7); ++addr)
     {
         if (addr % 16 == 0) {
-            printf("%02x ", addr);
+            printf("%02x   ", addr);
         }
 
         // Perform a 1-byte dummy read at the current address using i2c_read_blocking().
