@@ -3,9 +3,9 @@
 
 bool init_cartridge();
 
-void set_address(uint16_t addr);
+bool set_address_bus(uint16_t addr);
 void set_read_signal(bool level);
-uint8_t get_data();
+uint8_t get_data_bus();
 
 void test_read_registers();
 void test_write_registers();

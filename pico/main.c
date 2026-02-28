@@ -54,11 +54,18 @@ int main()
             const uint32_t MAX_ADDRESS = 0x0001; // 0x7FFF
             for (uint32_t addr = 0; addr <= MAX_ADDRESS; addr++)
             {
-                set_address(addr);
+                success = set_address_bus(addr);
+                if (!success)
+                {
+                    // TODO: how should I notify the host if failure? or is it necessary? either way I think it should
+                    // stop and maybe reset the I/O expanders so that I don't drive the data bus while the ROM is driving it.
+                    printf("failed to set address 0x%x\n", addr);
+                    break;
+                }
                 sleep_us(1);
                 set_read_signal(false);
                 sleep_us(1);
-                uint8_t data = get_data();
+                uint8_t data = get_data_bus();
                 set_read_signal(true);
                 sleep_us(1); // TODO: is this delay needed?
 

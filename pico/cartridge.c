@@ -77,7 +77,7 @@ bool init_cartridge()
         return false;
     }
     buffer[0] = REG_GPIOB_CONTROL_SIGNALS;
-    buffer[1] = 0x07; // 0b0000 0111
+    buffer[1] = 0x07; // 0b0000 0111, set bits 0,1,2 high, the rest are low
     bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, buffer, 2, false);
     if (bytes_written != 2)
     {
@@ -94,37 +94,40 @@ bool init_cartridge()
     {
         return false;
     }
-    buffer[0] = REG_GPIOA_LOW_ADDR_BUS;
-    buffer[1] = 0x00; // cart's address bus will be 0x00 ...
-    buffer[2] = 0x00; // ... and 0x00
-    bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 3, false);
-    if (bytes_written != 3)
-    {
-        return false;
-    }
+    bool success = set_address_bus(0x0000);
 
-    return true;
+    return success;
 }
 
 //*************************************************************************************************
 
-void set_address(uint16_t addr)
+bool set_address_bus(uint16_t addr)
 {
+    uint8_t buffer[3];
 
+    buffer[0] = REG_GPIOA_LOW_ADDR_BUS;
+    buffer[1] = addr & 0xFF; // low byte
+    buffer[2] = (addr >> 8) & 0xFF; // high byte
+    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 3, false);
+    return (3 == bytes_written);
 }
 
 //*************************************************************************************************
 
 void set_read_signal(bool level)
 {
-
+    // TODO:
 }
 
 //*************************************************************************************************
 
-uint8_t get_data()
+uint8_t get_data_bus()
 {
-
+    uint8_t reg_addr = REG_GPIOA_DATA_BUS;
+    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, &reg_addr, 1, true); // true to keep master control of bus
+    uint8_t data = 0;
+    int bytes_read = i2c_read_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, &data, 1, false);
+    return data;
 }
 
 //*************************************************************************************************
