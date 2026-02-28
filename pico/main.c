@@ -13,7 +13,8 @@ int main()
     //gpio_init(PICO_DEFAULT_LED_PIN);
     //gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
-    init_cartridge();
+    // initialize the I/O expanders and set the signals to their default of high/low
+    bool success = init_cartridge();
 
     while (true)
     {
@@ -27,7 +28,7 @@ int main()
         if ('z' == c)
         {
             stdio_set_translate_crlf(&stdio_usb, true);
-            printf("hello\n");
+            printf("success = %d\n", success == true ? 1 : 0);
         }
         else if ('r' == c)
         {
@@ -47,8 +48,23 @@ int main()
         else if ('g' == c)
         {
             // the SDK will translate LF to CRLF by default, so turn that off because we are sending binary data
-            stdio_set_translate_crlf(&stdio_usb, false);
-            printf("test\n");
+            // TODO uncomment this when sending binary data
+            //stdio_set_translate_crlf(&stdio_usb, false);
+
+            const uint32_t MAX_ADDRESS = 0x0001; // 0x7FFF
+            for (uint32_t addr = 0; addr <= MAX_ADDRESS; addr++)
+            {
+                set_address(addr);
+                sleep_us(1);
+                set_read_signal(false);
+                sleep_us(1);
+                uint8_t data = get_data();
+                set_read_signal(true);
+                sleep_us(1); // TODO: is this delay needed?
+
+                // TODO: switch to binary communication with host
+                printf("addr 0x%x has data 0x%x\n", addr, data);
+            }
         }
 
         // toggle the status LED
