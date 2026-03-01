@@ -1,13 +1,58 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
+#include "pico/multicore.h"
+#include "pico/util/queue.h"
+
 #include "cartridge.h"
+
+//*************************************************************************************************
+
+// global vars
+queue_t msg_queue;
+volatile bool start = false;
+
+//*************************************************************************************************
+
+void core1_entry()
+{
+    while (true)
+    {
+        if (!start)
+        {
+            // we have not received the start signal yet, keep waiting
+            sleep_ms(1);
+            continue;
+        }
+
+        // we received the start signal, reset it then grab the data from the cartridge
+        start = false;
+
+        const uint32_t MAX_ADDRESS = 0x7FFF; // 0x7FFF
+        for (uint32_t addr = 0; addr <= MAX_ADDRESS; addr++)
+        {
+            set_address_bus(addr);
+            sleep_us(1);
+            set_read_signal(false);
+            sleep_us(1);
+            uint8_t data = get_data_bus();
+            set_read_signal(true);
+
+            // send the byte to core0
+            queue_add_blocking(&msg_queue, &data);
+            //sleep_us(1); // TODO: is this delay needed?
+        }
+    }
+}
 
 //*************************************************************************************************
 
 int main()
 {
     stdio_init_all();
+
+    queue_init(&msg_queue, sizeof(uint8_t), 1000);
+    multicore_launch_core1(core1_entry);
 
     // init the status LED
     //gpio_init(PICO_DEFAULT_LED_PIN);
@@ -18,10 +63,19 @@ int main()
 
     while (true)
     {
+        uint8_t data;
+        bool newData = queue_try_remove(&msg_queue, &data);
+        if (newData)
+        {
+            // if core1 gave us data through the queue then send it to the host PC
+            fwrite(&data, 1, 1, stdout);
+            fflush(stdout);
+        }
+
         int c = getchar_timeout_us(0);
         if (PICO_ERROR_TIMEOUT == c)
         {
-            // no data received from host PC, back to beginning of loop
+            // no cmd received from host PC, back to beginning of loop
             continue;
         }
 
@@ -45,33 +99,19 @@ int main()
             stdio_set_translate_crlf(&stdio_usb, true);
             scan_bus();
         }
+        else if ('l' == c)
+        {
+            set_read_signal(false);
+        }
+        else if ('h' == c)
+        {
+            set_read_signal(true);
+        }
         else if ('g' == c)
         {
             // the SDK will translate LF to CRLF by default, so turn that off because we are sending binary data
-            // TODO uncomment this when sending binary data
-            //stdio_set_translate_crlf(&stdio_usb, false);
-
-            const uint32_t MAX_ADDRESS = 0x0001; // 0x7FFF
-            for (uint32_t addr = 0; addr <= MAX_ADDRESS; addr++)
-            {
-                success = set_address_bus(addr);
-                if (!success)
-                {
-                    // TODO: how should I notify the host if failure? or is it necessary? either way I think it should
-                    // stop and maybe reset the I/O expanders so that I don't drive the data bus while the ROM is driving it.
-                    printf("failed to set address 0x%x\n", addr);
-                    break;
-                }
-                sleep_us(1);
-                set_read_signal(false);
-                sleep_us(1);
-                uint8_t data = get_data_bus();
-                set_read_signal(true);
-                sleep_us(1); // TODO: is this delay needed?
-
-                // TODO: switch to binary communication with host
-                printf("addr 0x%x has data 0x%x\n", addr, data);
-            }
+            stdio_set_translate_crlf(&stdio_usb, false);
+            start = true;
         }
 
         // toggle the status LED

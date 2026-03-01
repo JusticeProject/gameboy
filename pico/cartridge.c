@@ -42,6 +42,7 @@
 #define REG_IODIRA_DATA_BUS 0x00
 #define REG_IODIRB_CONTROL_SIGNALS 0x01
 #define REG_GPIOA_DATA_BUS 0x12
+// control signals, from bit7 downto bit0: x,x,x,x, x,CS,RD,WR
 #define REG_GPIOB_CONTROL_SIGNALS 0x13
 
 //*************************************************************************************************
@@ -116,7 +117,13 @@ bool set_address_bus(uint16_t addr)
 
 void set_read_signal(bool level)
 {
-    // TODO:
+    uint8_t buffer[2];
+
+    buffer[0] = REG_GPIOB_CONTROL_SIGNALS;
+    // if the RD is high then it's: 0b0000 0111
+    // if the RD is low then it's:  0b0000 0101
+    buffer[1] = level ? 0x07 : 0x05;
+    i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, buffer, 2, false);
 }
 
 //*************************************************************************************************
@@ -124,9 +131,9 @@ void set_read_signal(bool level)
 uint8_t get_data_bus()
 {
     uint8_t reg_addr = REG_GPIOA_DATA_BUS;
-    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, &reg_addr, 1, true); // true to keep master control of bus
+    i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, &reg_addr, 1, true); // true to keep master control of bus
     uint8_t data = 0;
-    int bytes_read = i2c_read_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, &data, 1, false);
+    i2c_read_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, &data, 1, false);
     return data;
 }
 
