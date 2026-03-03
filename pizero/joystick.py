@@ -125,6 +125,7 @@ def read_joystick():
 
 try:
     # Check for available joysticks
+    # TODO: only quit the joystick if there is no joystick yet?
     while True:
         # Initialize Pygame and the joystick module
         pygame.init()
@@ -141,6 +142,11 @@ try:
 except KeyboardInterrupt:
     print("Exiting...")
 finally:
+    # TODO: need good way to clean up, 
+    # Reboot and shutdown hang for a long time if the following are not cleaned up properly.
+    # On reboot maybe the BCM chip is still initialized so shutdown seems best option if we can't 
+    # clean these up.
+    # Maybe Xbox Home button + Start button can trigger this?
     pygame.joystick.quit()
     pygame.quit()
     GPIO.cleanup()
