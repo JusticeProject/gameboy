@@ -55,7 +55,7 @@ def clear_bit(currentButtons, bit_position):
 ###################################################################################################
 
 def set_bit(currentButtons, bit_position):
-    mask = (1 << bit_position)
+    mask = (1 << bit_position) & 0xFF
     currentButtons = currentButtons | mask
     return currentButtons
 
@@ -75,12 +75,12 @@ def read_joystick():
         # Process events
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
-                print(f"Button {event.button} pressed")
+                #print(f"Button {event.button} pressed")
                 bit = convertXbox360ButtontoGameBoyBit(event.button)
                 if bit >= 0:
                     currentButtons = clear_bit(currentButtons, bit)
             elif event.type == pygame.JOYBUTTONUP:
-                print(f"Button {event.button} released")
+                #print(f"Button {event.button} released")
                 bit = convertXbox360ButtontoGameBoyBit(event.button)
                 if bit >= 0:
                     currentButtons = set_bit(currentButtons, bit)
