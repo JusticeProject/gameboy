@@ -1,40 +1,113 @@
 import pygame
 import time
 
+###################################################################################################
+
+XBOX_360_DOWN = 14
+XBOX_360_UP = 13
+XBOX_360_LEFT = 11
+XBOX_360_RIGHT = 12
+XBOX_360_START = 7
+XBOX_360_BACK = 6
+XBOX_360_A = 0
+XBOX_360_B = 1
+XBOX_360_X = 2
+XBOX_360_Y = 3
+
+GAME_BOY_BIT_DOWN = 7
+GAME_BOY_BIT_UP = 6
+GAME_BOY_BIT_LEFT = 5
+GAME_BOY_BIT_RIGHT = 4
+GAME_BOY_BIT_START = 3
+GAME_BOY_BIT_SELECT = 2
+GAME_BOY_BIT_B = 1
+GAME_BOY_BIT_A = 0
+
+###################################################################################################
+
+def convertXbox360ButtontoGameBoyBit(button):
+    if button == XBOX_360_DOWN:
+        return GAME_BOY_BIT_DOWN
+    elif button == XBOX_360_UP:
+        return GAME_BOY_BIT_UP
+    elif button == XBOX_360_LEFT:
+        return GAME_BOY_BIT_LEFT
+    elif button == XBOX_360_RIGHT:
+        return GAME_BOY_BIT_RIGHT
+    elif button == XBOX_360_START:
+        return GAME_BOY_BIT_START
+    elif button == XBOX_360_BACK:
+        return GAME_BOY_BIT_SELECT
+    elif button == XBOX_360_A or button == XBOX_360_Y:
+        return GAME_BOY_BIT_A
+    elif button == XBOX_360_B or button == XBOX_360_X:
+        return GAME_BOY_BIT_B
+    else:
+        return -1
+
+###################################################################################################
+
+def clear_bit(currentButtons, bit_position):
+    mask = (~(1 << bit_position)) & 0xFF
+    currentButtons = currentButtons & mask
+    return currentButtons
+
+###################################################################################################
+
+def set_bit(currentButtons, bit_position):
+    mask = (1 << bit_position)
+    currentButtons = currentButtons | mask
+    return currentButtons
+
+###################################################################################################
+
 def read_joystick():
-    # Initialize Pygame and the joystick module
-    pygame.init()
-    pygame.joystick.init()
-
-    # Check for available joysticks
-    if pygame.joystick.get_count() == 0:
-        print("No joysticks found. Please connect one.")
-        return
-
     # Get the first joystick
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
 
     print(f"Initialized Joystick: {joystick.get_name()}")
 
-    try:
-        while True:
-            # Process events
-            for event in pygame.event.get():
-                if event.type == pygame.JOYBUTTONDOWN:
-                    print(f"Button {event.button} pressed")
-                elif event.type == pygame.JOYBUTTONUP:
-                    print(f"Button {event.button} released")
-            
-            # Small delay to prevent burning CPU cycles
-            time.sleep(0.01)
+    currentButtons = 0xff
+    prevButtons = 0x00
 
-    except KeyboardInterrupt:
-        print("Exiting...")
-    finally:
-        pygame.joystick.quit()
-        pygame.quit()
+    while True:
+        # Process events
+        for event in pygame.event.get():
+            if event.type == pygame.JOYBUTTONDOWN:
+                print(f"Button {event.button} pressed")
+                bit = convertXbox360ButtontoGameBoyBit(event.button)
+                if bit >= 0:
+                    currentButtons = clear_bit(currentButtons, bit)
+            elif event.type == pygame.JOYBUTTONUP:
+                print(f"Button {event.button} released")
+                bit = convertXbox360ButtontoGameBoyBit(event.button)
+                if bit >= 0:
+                    currentButtons = set_bit(currentButtons, bit)
+        
+        if (currentButtons != prevButtons):
+            # TODO: send over SPI bus
+            print(f"sending {bin(currentButtons)} over SPI")
+            prevButtons = currentButtons
+        
+        # Small delay to prevent burning CPU cycles
+        time.sleep(0.01)
 
-if __name__ == "__main__":
+###################################################################################################
+
+# Initialize Pygame and the joystick module
+pygame.init()
+pygame.joystick.init()
+
+# Check for available joysticks
+if pygame.joystick.get_count() == 0:
+    print("No joysticks found. Please connect one.")
+    exit()
+
+try:
     read_joystick()
-
+except KeyboardInterrupt:
+    print("Exiting...")
+finally:
+    pygame.joystick.quit()
+    pygame.quit()
