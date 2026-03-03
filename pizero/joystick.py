@@ -1,5 +1,32 @@
 import pygame
+import spidev
+import RPi.GPIO as GPIO
 import time
+
+###################################################################################################
+
+# initialize GPIO
+gpioPin = 17
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(gpioPin, GPIO.OUT)
+
+# initialize SPI
+spi = spidev.SpiDev()
+spi.open(0, 0) # corresponds to /dev/spidev0.0
+spi.max_speed_hz = 5000000 # 5MHz
+spi.lsbfirst = False # we always want MSB first
+spi.bits_per_word = 8
+spi.mode = 0b00 # mode 0, clock polarity = 0 and clock phase = 0, clock idles low, data latched on rising edge
+
+# Initialize Pygame and the joystick module
+pygame.init()
+pygame.joystick.init()
+
+# Check for available joysticks
+if pygame.joystick.get_count() == 0:
+    print("No joysticks found. Please connect one.")
+    exit()
 
 ###################################################################################################
 
@@ -70,9 +97,12 @@ def read_joystick():
 
     currentButtons = 0xff
     prevButtons = 0x00
+    prevToggleTime = time.time()
 
     while True:
-        # Process events
+        # Process events.
+        # .get() does not block, it will just return an 
+        # empty list of events if no buttons were pressed
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
                 #print(f"Button {event.button} pressed")
@@ -86,23 +116,21 @@ def read_joystick():
                     currentButtons = set_bit(currentButtons, bit)
         
         if (currentButtons != prevButtons):
-            # TODO: send over SPI bus
+            # send over SPI bus
             print(f"sending {bin(currentButtons)} over SPI")
+            data_to_send = [currentButtons]
+            spi.writebytes(data_to_send)
             prevButtons = currentButtons
         
         # Small delay to prevent burning CPU cycles
         time.sleep(0.01)
 
+        # toggle status LED
+        if (time.time() - prevToggleTime) > 1:
+            GPIO.output(gpioPin, not GPIO.input(gpioPin))
+            prevToggleTime = time.time()
+
 ###################################################################################################
-
-# Initialize Pygame and the joystick module
-pygame.init()
-pygame.joystick.init()
-
-# Check for available joysticks
-if pygame.joystick.get_count() == 0:
-    print("No joysticks found. Please connect one.")
-    exit()
 
 try:
     read_joystick()
@@ -111,3 +139,5 @@ except KeyboardInterrupt:
 finally:
     pygame.joystick.quit()
     pygame.quit()
+    GPIO.cleanup()
+    spi.close()
