@@ -24,9 +24,12 @@ pygame.init()
 pygame.joystick.init()
 
 # Check for available joysticks
-if pygame.joystick.get_count() == 0:
-    print("No joysticks found. Please connect one.")
-    exit()
+while True:
+    if pygame.joystick.get_count() == 0:
+        print("No joysticks found. Please connect one.")
+    else:
+        break
+    time.sleep(1)
 
 ###################################################################################################
 
