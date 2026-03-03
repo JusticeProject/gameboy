@@ -31,6 +31,8 @@ XBOX_360_A = 0
 XBOX_360_B = 1
 XBOX_360_X = 2
 XBOX_360_Y = 3
+XBOX_360_LEFT_BUMPER = 4
+XBOX_360_RIGHT_BUMPER = 5
 
 GAME_BOY_BIT_DOWN = 7
 GAME_BOY_BIT_UP = 6
@@ -90,6 +92,9 @@ def read_joystick():
     prevButtons = 0x00
     prevToggleTime = time.time()
 
+    leftBumperPressed = False
+    rightBumperPressed = False
+
     while True:
         # Process events.
         # .get() does not block, it will just return an 
@@ -100,14 +105,27 @@ def read_joystick():
                 bit = convertXbox360ButtontoGameBoyBit(event.button)
                 if bit >= 0:
                     currentButtons = clear_bit(currentButtons, bit)
+                if event.button == XBOX_360_LEFT_BUMPER:
+                    leftBumperPressed = True
+                if event.button == XBOX_360_RIGHT_BUMPER:
+                    rightBumperPressed = True
             elif event.type == pygame.JOYBUTTONUP:
                 #print(f"Button {event.button} released")
                 bit = convertXbox360ButtontoGameBoyBit(event.button)
                 if bit >= 0:
                     currentButtons = set_bit(currentButtons, bit)
+                if event.button == XBOX_360_LEFT_BUMPER:
+                    leftBumperPressed = False
+                if event.button == XBOX_360_RIGHT_BUMPER:
+                    rightBumperPressed = False
+
+        if leftBumperPressed and rightBumperPressed:
+            print("both bumpers pressed")
+            raise KeyboardInterrupt
         
         if (currentButtons != prevButtons):
             # send over SPI bus
+            # TODO: remove print statement
             print(f"sending {bin(currentButtons)} over SPI")
             data_to_send = [currentButtons]
             spi.writebytes(data_to_send)
