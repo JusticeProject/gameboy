@@ -19,18 +19,6 @@ spi.lsbfirst = False # we always want MSB first
 spi.bits_per_word = 8
 spi.mode = 0b00 # mode 0, clock polarity = 0 and clock phase = 0, clock idles low, data latched on rising edge
 
-# Initialize Pygame and the joystick module
-pygame.init()
-pygame.joystick.init()
-
-# Check for available joysticks
-while True:
-    if pygame.joystick.get_count() == 0:
-        print("No joysticks found. Please connect one.")
-    else:
-        break
-    time.sleep(1)
-
 ###################################################################################################
 
 XBOX_360_DOWN = 14
@@ -136,6 +124,19 @@ def read_joystick():
 ###################################################################################################
 
 try:
+    # Check for available joysticks
+    while True:
+        # Initialize Pygame and the joystick module
+        pygame.init()
+        pygame.joystick.init()
+        if pygame.joystick.get_count() == 0:
+            print("No joysticks found. Please connect one.")
+            pygame.joystick.quit()
+            pygame.quit()
+            time.sleep(2)
+        else:
+            break
+
     read_joystick()
 except KeyboardInterrupt:
     print("Exiting...")
