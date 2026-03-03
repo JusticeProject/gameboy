@@ -81,7 +81,6 @@ def read_joystick():
         # Process events.
         # .get() does not block, it will just return an 
         # empty list of events if no buttons were pressed
-
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
                 print(f"Button {event.button} pressed")
@@ -117,28 +116,25 @@ def read_joystick():
 ###################################################################################################
 
 try:
-    # Check for available joysticks
-    # TODO: only quit the joystick if there is no joystick yet?
+    # Initialize Pygame and the joystick module
+    pygame.init()
+
     while True:
-        # Initialize Pygame and the joystick module
-        pygame.init()
         pygame.joystick.init()
+        # Check for available joysticks
         if pygame.joystick.get_count() == 0:
             print("No joysticks found. Please connect one.")
             pygame.joystick.quit()
-            pygame.quit()
             time.sleep(2)
         else:
             break
 
     read_joystick()
+
 except KeyboardInterrupt:
     print("Exiting...")
 finally:
-    # TODO: need good way to clean up, 
     # Reboot and shutdown hang for a long time if the following are not cleaned up properly.
-    # On reboot maybe the BCM chip is still initialized so shutdown seems best option if we can't 
-    # clean these up.
-    # Maybe Xbox Home button + Start button can trigger this?
+    # On reboot maybe the BCM chip is still initialized so shutdown seems best option.
     pygame.joystick.quit()
     pygame.quit()
