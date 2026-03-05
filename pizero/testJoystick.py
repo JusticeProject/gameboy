@@ -1,5 +1,23 @@
 import pygame
+#import spidev
+#import RPi.GPIO as GPIO
 import time
+
+###################################################################################################
+
+# initialize GPIO
+# gpioPin = 17
+# GPIO.setwarnings(False)
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(gpioPin, GPIO.OUT)
+
+# initialize SPI
+# spi = spidev.SpiDev()
+# spi.open(0, 0) # corresponds to /dev/spidev0.0
+# spi.max_speed_hz = 5000000 # 5MHz
+# spi.lsbfirst = False # we always want MSB first
+# spi.bits_per_word = 8
+# spi.mode = 0b00 # mode 0, clock polarity = 0 and clock phase = 0, clock idles low, data latched on rising edge
 
 ###################################################################################################
 
@@ -78,6 +96,11 @@ def read_joystick():
     rightBumperPressed = False
 
     while True:
+        # if joystick disconnected then return so we can reconnect
+        if pygame.joystick.get_count() == 0:
+            joystick.quit()
+            return
+
         # Process events.
         # .get() does not block, it will just return an 
         # empty list of events if no buttons were pressed
@@ -108,17 +131,21 @@ def read_joystick():
         if (currentButtons != prevButtons):
             # send over SPI bus
             print(f"sending {bin(currentButtons)} over SPI")
+            # data_to_send = [currentButtons]
+            # spi.writebytes(data_to_send)
             prevButtons = currentButtons
         
         # Small delay to prevent burning CPU cycles
         time.sleep(0.01)
 
+        # toggle status LED
+        # if (time.time() - prevToggleTime) > 1:
+        #     GPIO.output(gpioPin, not GPIO.input(gpioPin))
+        #     prevToggleTime = time.time()
+
 ###################################################################################################
 
-try:
-    # Initialize Pygame and the joystick module
-    pygame.init()
-
+def wait_for_joystick_connected():
     while True:
         pygame.joystick.init()
         # Check for available joysticks
@@ -127,14 +154,26 @@ try:
             pygame.joystick.quit()
             time.sleep(2)
         else:
-            break
+            return
 
-    read_joystick()
+###################################################################################################
+
+try:
+    # Initialize Pygame and the joystick module
+    pygame.init()
+
+    while True:
+        wait_for_joystick_connected()
+        read_joystick()
+        # if we reach this line then the joystick was disconnected, so loop again to wait for reconnection
 
 except KeyboardInterrupt:
     print("Exiting...")
 finally:
     # Reboot and shutdown hang for a long time if the following are not cleaned up properly.
     # On reboot maybe the BCM chip is still initialized so shutdown seems best option.
+    # GPIO.output(gpioPin, 0)
+    # GPIO.cleanup()
+    # spi.close()
     pygame.joystick.quit()
     pygame.quit()

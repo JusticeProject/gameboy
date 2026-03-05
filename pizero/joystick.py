@@ -96,6 +96,11 @@ def read_joystick():
     rightBumperPressed = False
 
     while True:
+        # if joystick disconnected then return so we can reconnect
+        if pygame.joystick.get_count() == 0:
+            joystick.quit()
+            return
+
         # Process events.
         # .get() does not block, it will just return an 
         # empty list of events if no buttons were pressed
@@ -141,10 +146,7 @@ def read_joystick():
 
 ###################################################################################################
 
-try:
-    # Initialize Pygame and the joystick module
-    pygame.init()
-
+def wait_for_joystick_connected():
     while True:
         pygame.joystick.init()
         # Check for available joysticks
@@ -153,15 +155,25 @@ try:
             pygame.joystick.quit()
             time.sleep(2)
         else:
-            break
+            return
 
-    read_joystick()
+###################################################################################################
+
+try:
+    # Initialize Pygame and the joystick module
+    pygame.init()
+
+    while True:
+        wait_for_joystick_connected()
+        read_joystick()
+        # if we reach this line then the joystick was disconnected, so loop again to wait for reconnection
 
 except KeyboardInterrupt:
     print("Exiting...")
 finally:
     # Reboot and shutdown hang for a long time if the following are not cleaned up properly.
     # On reboot maybe the BCM chip is still initialized so shutdown seems best option.
+    GPIO.output(gpioPin, 0)
     GPIO.cleanup()
     spi.close()
     pygame.joystick.quit()
