@@ -58,8 +58,8 @@ bool init_cartridge()
     gpio_put(OPTOCOUPLER_GPIO_PIN, true);
     sleep_ms(1);
 
-    // i2c Initialisation. Using it at 100Khz.
-    i2c_init(I2C_PORT, 100*1000);
+    // i2c Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400*1000);
     gpio_set_function(I2C_SDA_GPIO_PIN, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL_GPIO_PIN, GPIO_FUNC_I2C);
     // TODO: the logic level converter board also has pull-ups, so maybe I don't need to enable them here
@@ -68,11 +68,25 @@ bool init_cartridge()
 
     uint8_t buffer[3];
 
+    // turn off the slew rate for each I/O expander
+    buffer[0] = REG_IOCON;
+    buffer[1] = 0x10; // turn off the slew rate, keep all other bits at their defaults
+    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_ADDR, buffer, 2, false);
+    if (bytes_written != 2)
+    {
+        return false;
+    }
+    bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, buffer, 2, false);
+    if (bytes_written != 2)
+    {
+        return false;
+    }
+
     // The reset initialized all GPIOs on I/O expanders to inputs.
     // Configure control signals (RD, WR, CS/MREQ) to outputs and set them high.
     buffer[0] = REG_IODIRB_CONTROL_SIGNALS;
     buffer[1] = 0xF8; // 0b1111 1000 bits 0,1,2 will be outputs, the rest are inputs
-    int bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, buffer, 2, false);
+    bytes_written = i2c_write_blocking(I2C_PORT, I2C_ADDR_FOR_CART_DATA_CONTROL, buffer, 2, false);
     if (bytes_written != 2)
     {
         return false;
