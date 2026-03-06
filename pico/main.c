@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pico/stdlib.h"
 
 #include "pico/multicore.h"
@@ -11,6 +13,21 @@
 // global vars
 queue_t msg_queue;
 volatile bool start = false;
+
+//*************************************************************************************************
+
+uint16_t getHexFromUser()
+{
+    char buf[6];
+    char* endptr;
+    memset(buf, 0, sizeof(buf));
+
+    // ex: user will type 00ff then hit enter
+    fgets(buf, sizeof(buf), stdin);
+    uint16_t number = strtol(buf, &endptr, 16);
+    
+    return number;
+}
 
 //*************************************************************************************************
 
@@ -83,6 +100,13 @@ int main()
         {
             stdio_set_translate_crlf(&stdio_usb, true);
             printf("success = %d\n", success == true ? 1 : 0);
+        }
+        else if ('a' == c)
+        {
+            stdio_set_translate_crlf(&stdio_usb, true);
+            uint16_t addr = getHexFromUser();
+            printf("setting to addr 0x%x\n", addr);
+            set_address_bus(addr);
         }
         else if ('r' == c)
         {
