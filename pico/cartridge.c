@@ -116,6 +116,19 @@ bool init_cartridge()
 
 //*************************************************************************************************
 
+uint8_t set_addr_read_data(uint16_t addr)
+{
+    set_address_bus(addr);
+    sleep_us(1);
+    set_read_signal(false);
+    sleep_us(1);
+    uint8_t data = get_data_bus();
+    set_read_signal(true);
+    return data;
+}
+
+//*************************************************************************************************
+
 bool set_address_bus(uint16_t addr)
 {
     uint8_t buffer[3];
@@ -185,38 +198,10 @@ void read_registers(uint8_t i2c_addr)
 
 //*************************************************************************************************
 
-void write_registers(uint8_t i2c_addr)
-{
-    /*printf("writing i2c addr 0x%x\n", i2c_addr);
-
-    // First byte is address, the following bytes are data.
-    // Change all the GPIO directions to be outputs.
-    uint8_t buffer[] = {REG_ADDR_IODIRA, 0x00, 0x00};
-    int bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, buffer, 3, false); 
-    printf("for reg_addr = 0x%x: bytes_written = %d\n", REG_ADDR_IODIRA, bytes_written);
-
-    // Set all GPIO high.
-    buffer[0] = REG_ADDR_GPIOA;
-    buffer[1] = 0xFF;
-    buffer[2] = 0xFF;
-    bytes_written = i2c_write_blocking(I2C_PORT, i2c_addr, buffer, 3, false); 
-    printf("for reg_addr = 0x%x: bytes_written = %d\n", REG_ADDR_IODIRA, bytes_written);*/
-}
-
-//*************************************************************************************************
-
 void test_read_registers()
 {
     read_registers(I2C_ADDR_FOR_CART_ADDR);
     read_registers(I2C_ADDR_FOR_CART_DATA_CONTROL);
-}
-
-//*************************************************************************************************
-
-void test_write_registers()
-{
-    write_registers(I2C_ADDR_FOR_CART_ADDR);
-    //write_registers(I2C_ADDR_FOR_CART_DATA);
 }
 
 //*************************************************************************************************

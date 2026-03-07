@@ -31,6 +31,25 @@ uint16_t getHexFromUser()
 
 //*************************************************************************************************
 
+void read_bank(uint8_t cartridgeType, uint8_t bank)
+{
+    // TODO: need to handle other cartridge types with memory bank controllers, need to load the higher
+    // numbered banks first before reading it. Even if it's bank 1 we should load it first because the 
+    // previous attempt to read the cartridge may have left it at bank 7 for example.
+
+    uint16_t START_ADDRESS = (bank == 0) ? 0x0000 : 0x4000;
+    uint16_t MAX_ADDRESS = (bank == 0) ? 0x3FFF : 0x7FFF;
+    for (uint16_t addr = START_ADDRESS; addr <= MAX_ADDRESS; addr++)
+    {
+        uint8_t data = set_addr_read_data(addr);
+
+        // send the byte to core0
+        queue_add_blocking(&msg_queue, &data);
+    }
+}
+
+//*************************************************************************************************
+
 void core1_entry()
 {
     while (true)
@@ -45,19 +64,22 @@ void core1_entry()
         // we received the start signal, reset it then grab the data from the cartridge
         start = false;
 
-        const uint32_t MAX_ADDRESS = 0x7FFF; // 0x7FFF
-        for (uint32_t addr = 0; addr <= MAX_ADDRESS; addr++)
-        {
-            set_address_bus(addr);
-            sleep_us(1);
-            set_read_signal(false);
-            sleep_us(1);
-            uint8_t data = get_data_bus();
-            set_read_signal(true);
+        // first figure out what type of cartridge and how many banks there are
+        const uint16_t HEADER_CARTRIDGE_TYPE_ADDR = 0x0147;
+        const uint16_t HEADER_CARTRIDGE_ROM_SIZE_ADDR = 0x0148;
+        uint8_t cartridgeType = set_addr_read_data(HEADER_CARTRIDGE_TYPE_ADDR);
+        uint8_t romSizeCode = set_addr_read_data(HEADER_CARTRIDGE_ROM_SIZE_ADDR);
 
-            // send the byte to core0
-            queue_add_blocking(&msg_queue, &data);
-            //sleep_us(1); // TODO: is this delay needed?
+        // Calculate the total number of banks.
+        // If code = 0 then numBanks = 2
+        // If code = 1 then numBanks = 4
+        // If code = 2 then numBanks = 8, etc.
+        uint8_t numBanks = (1 << (romSizeCode + 1));
+
+        // read all the banks
+        for (uint8_t bank = 0; bank < numBanks; bank++)
+        {
+            read_bank(cartridgeType, bank);
         }
     }
 }
@@ -112,11 +134,6 @@ int main()
         {
             stdio_set_translate_crlf(&stdio_usb, true);
             test_read_registers();
-        }
-        else if ('w' == c)
-        {
-            stdio_set_translate_crlf(&stdio_usb, true);
-            test_write_registers();
         }
         else if ('s' == c)
         {
