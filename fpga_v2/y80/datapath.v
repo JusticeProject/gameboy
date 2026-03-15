@@ -84,7 +84,7 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   wire         ld_a_aa, ld_a_ff, ld_a_bb, ld_a_cc;
   wire         ld_a_dd, ld_a_ee, ld_a_hh, ld_a_ll;
   wire         ld_sp;
-  wire         ld_ii,   ld_tmp;
+  wire         ld_tmp;
   wire         ld_dout_io, ld_dout_mem;                    /* load data out                */
   wire         ld_flag;                                    /* load flags                   */
   wire         ld_regf;                                    /* load register file           */
@@ -133,7 +133,6 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   reg    [7:0] m_dd_reg, m_ee_reg, m_hh_reg, m_ll_reg;
   reg    [7:0] a_aa_reg, a_ff_reg, a_bb_reg, a_cc_reg;
   reg    [7:0] a_dd_reg, a_ee_reg, a_hh_reg, a_ll_reg;
-  reg    [7:0] ii_reg;
   reg    [7:0] din0_reg, din1_reg;                         /* data input registers         */
   reg    [7:0] dout_io_reg, dout_mem_reg;                  /* data output registers        */
   reg   [15:0] adda_out;                                   /* address alu out              */
@@ -232,7 +231,6 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   assign ld_a_hh =   ld_regf && wr_addr[`WR_HH] &&  alt_bnk_reg;
   assign ld_a_ll =   ld_regf && wr_addr[`WR_LL] &&  alt_bnk_reg;
   assign ld_sp   =   ld_regf && wr_addr[`WR_SP];
-  assign ld_ii   =   ld_regf && wr_addr[`WR_II];
   assign ld_tmp  =   ld_regf && wr_addr[`WR_TMP];
 
   assign af_reg_out = (alt_af_reg)  ? {a_aa_reg, a_ff_reg} : {m_aa_reg, m_ff_reg};
@@ -248,8 +246,7 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   assign hi_byte    = (wr_addr[`WR_AA] && !wr_addr[`WR_FF]) ||
                       (wr_addr[`WR_BB] && !wr_addr[`WR_CC]) ||
                       (wr_addr[`WR_DD] && !wr_addr[`WR_EE]) ||
-                      (wr_addr[`WR_HH] && !wr_addr[`WR_LL]) ||
-                       wr_addr[`WR_II];
+                      (wr_addr[`WR_HH] && !wr_addr[`WR_LL]);
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -297,13 +294,11 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
 
   always @ (posedge clkc or negedge resetb) begin
     if (!resetb) begin
-      ii_reg  <= 8'h00;
       pc_reg  <= 16'h0000;
       sp_reg  <= 16'h0000;
       tmp_reg <= 16'h0000;
       end
     else begin
-      if (ld_ii)  ii_reg  <= data_bus[15:8];
       if (ld_pc)  pc_reg  <= data_bus;
       if (ld_sp)  sp_reg  <= data_bus;
       if (ld_tmp) tmp_reg <= data_bus;
@@ -485,7 +480,7 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   /*****************************************************************************************/
   aluamux AMUX ( .adda_in(adda_in), .alua_in(alua_in), .alua_reg(alua_reg),
                  .aa_reg_out(aa_reg_out), .bit_mask(bit_mask), .daa_out(daa_out),
-                 .hl_reg_out(hl_reg_out), .ii_reg(ii_reg),
+                 .hl_reg_out(hl_reg_out),
                  .pc_reg(pc_reg) );
 
   alubmux BMUX ( .addb_in(addb_in), .alub_in(alub_in), .alub_reg(alub_reg),

@@ -12,9 +12,7 @@
   /*                                                                                       */
   /*****************************************************************************************/
   `define MAIN_PG     4'b0000          //no instruction prefix byte(s)
-  `define INTR_PG     4'b0001          //interrupt acknowledge
   `define CB_PAGE     4'b0010          //CB instruction prefix
-  `define DMA_PG      4'b0011          //dma acknowledge
   `define DD_PAGE     4'b0100          //DD instruction prefix
   `define FD_PAGE     4'b0101          //FD instruction prefix
   `define DDCB_PG     4'b0110          //DD-CB instruction prefix
@@ -32,8 +30,6 @@
   `define PC_NUL      3'b000           //No operation on PC
   `define PC_LD       3'b001           //PC loaded unconditionally
   `define PC_NILD     3'b011           //PC loaded if no interrupt, sample interrupt
-  `define PC_INT      3'b100           //Sample interrupt/dma only
-  `define PC_DMA      3'b110           //Sample dma only
   `define PC_NILD2    3'b111           //PC loaded if no latched interrupt
 
   /*****************************************************************************************/
@@ -60,14 +56,12 @@
   /*****************************************************************************************/
   `define TTYPE_IDX   5
   `define TRAN_RSTVAL 6'b000000        //Transaction type reset value
-  `define TRAN_IAK    6'b000001        //Intack transaction
   `define TRAN_IDL    6'b000010        //Idle transaction
   `define TRAN_IF     6'b000100        //Instruction fetch transaction
   `define TRAN_IO     6'b001000        //I/O transaction
   `define TRAN_MEM    6'b010000        //Memory (data) transaction
   `define TRAN_STK    6'b100000        //Memory (stack) transaction
 
-  `define TT_IAK      0                //Interrupt acknowledge transaction
   `define TT_IDL      1                //Idle transaction
   `define TT_IF       2                //Instruction fetch transaction
   `define TT_IO       3                //I/O transaction
@@ -95,29 +89,6 @@
   `define DI_DI0      2'b01            //Load din0
   `define DI_DI1      2'b10            //Load din1
   `define DI_DI10     2'b11            //Load both din0 and din1
-
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /* interrupt enable control: ief_ctl - DO NOT MODIFY                                     */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  `define IEF_IDX     2
-  `define IEF_NUL     3'b000           //No load
-  `define IEF_0       3'b010           //Load zero
-  `define IEF_1       3'b011           //Load one
-  `define IEF_NMI     3'b100           //ief2 <= ief1, ief1 <= 0
-  `define IEF_RTN     3'b101           //ief1 <= ief2
-
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /* int mode control: imd_ctl - DO NOT MODIFY                                             */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  `define IMD_IDX     1
-  `define IMD_NUL     2'b00            //No load
-  `define IMD_0       2'b01            //Set interrupt mode 0
-  `define IMD_1       2'b10            //Set interrupt mode 1
-  `define IMD_2       2'b11            //Set interrupt mode 2
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -187,7 +158,6 @@
   `define WREG_FF    15'b100000001000000         //Select F to write
   `define WREG_SP    15'b100000000100000         //Select SP to write
   `define WREG_TMP   15'b100000000010000         //Select TMP register to write
-  `define WREG_II    15'b100000000000010         //Select I register to write
   `define WREG_NUL   15'b000000000000000         //No register write
 
   `define WR_REG     14                //register write
@@ -201,7 +171,6 @@
   `define WR_FF       6                //FF register index
   `define WR_SP       5                //SP register index
   `define WR_TMP      4                //TMP register index
-  `define WR_II       1                //II register index
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -219,9 +188,6 @@
   `define ALUA_AA     14'h0080         //Select A register
   `define ALUA_BIT    14'h0100         //Select bit select constant
   `define ALUA_DAA    14'h0200         //Select decimal adjust constant
-  `define ALUA_II     14'h0400         //Select I register
-  `define ALUA_INT    14'h1000         //Select interrupt address
-  `define ALUA_RST    14'h2000         //Select restart address
 
   `define AA_ONE       0               //alua one
   `define AA_M1        1               //alua -1
@@ -231,9 +197,6 @@
   `define AA_AA        7               //alua aa
   `define AA_BIT       8               //alua bit
   `define AA_DAA       9               //alua daa
-  `define AA_II       10               //alua ii
-  `define AA_INT      12               //alua interrupt
-  `define AA_RST      13               //alua restart
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -390,12 +353,8 @@
   `define sPCO   32'b00000000010000000000000000000001   //PC output
   `define sIF1A  32'b00000000100000000000000000000001   //fetch 1st opcode (1)
   `define sIF1B  32'b00000001000000000000000000000001   //fetch 1st opcode (2)
-  `define sINTA  32'b00000010000000000000000000000001   //interrupt acknowledge (1)
-  `define sINTB  32'b00000100000000000000000000000001   //interrupt acknowledge (2)
   `define sHLTA  32'b00001000000000000000000000000001   //halt & sleep (1)
   `define sHLTB  32'b00010000000000000000000000000001   //halt & sleep (2)
-  `define sDMA1  32'b00100000000000000000000000000001   //dma transfer (1)
-  `define sDMA2  32'b01000000000000000000000000000001   //dma transfer (2)
   `define sRSTE  32'b10000000000000000000000000000001   //reset exit
 
   `define  RST   32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0   //reset
@@ -423,10 +382,6 @@
   `define  PCO   32'bxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx1   //PC output
   `define  IF1A  32'bxxxxxxxx1xxxxxxxxxxxxxxxxxxxxxx1   //fetch 1st opcode (1)
   `define  IF1B  32'bxxxxxxx1xxxxxxxxxxxxxxxxxxxxxxx1   //fetch 1st opcode (2)
-  `define  INTA  32'bxxxxxx1xxxxxxxxxxxxxxxxxxxxxxxx1   //interrupt acknowledge (1)
-  `define  INTB  32'bxxxxx1xxxxxxxxxxxxxxxxxxxxxxxxx1   //interrupt acknowledge (2)
   `define  HLTA  32'bxxxx1xxxxxxxxxxxxxxxxxxxxxxxxxx1   //halt & sleep (1)
   `define  HLTB  32'bxxx1xxxxxxxxxxxxxxxxxxxxxxxxxxx1   //halt & sleep (2)
-  `define  DMA1  32'bxx1xxxxxxxxxxxxxxxxxxxxxxxxxxxx1   //dma transfer (1)
-  `define  DMA2  32'bx1xxxxxxxxxxxxxxxxxxxxxxxxxxxxx1   //dma transfer (2)
   `define  RSTE  32'b1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1   //reset exit

@@ -74,7 +74,7 @@ module extint (data_in, ftch_tran, halt_tran, io_addr_out, io_data_out,
   assign io_data_out  = (out_inh_reg) ? 8'h00 : dout_io_reg;
   assign mem_data_out = (out_inh_reg) ? 8'h00 : dout_mem_reg;
   assign ld_io_addr   = tran_sel[`TT_IO] || output_inh;
-  assign ld_mem_addr  = tran_sel[`TT_IAK] || tran_sel[`TT_IDL] || tran_sel[`TT_IF] ||
+  assign ld_mem_addr  = tran_sel[`TT_IDL] || tran_sel[`TT_IF] ||
                         tran_sel[`TT_MEM] || tran_sel[`TT_STK];
 
   always @ (io_tran or io_data_in or mem_data_in) begin

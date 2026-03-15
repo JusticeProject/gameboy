@@ -631,7 +631,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           default:          pc_sel = `PC_NILD;
           endcase
         end
-      `HLTA:                pc_sel = `PC_INT;
       default:              pc_sel = `PC_NUL;
       endcase
     end
@@ -1035,7 +1034,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           12'b1xxx10101010,
           12'b1xxx10110010,
           12'b1xxx10111010: wr_addr = `WREG_HL;
-          12'b1xxx01000111: wr_addr = `WREG_II;
           12'b0010000xx000,
           12'b00100010x000,
           12'b001000111000,
