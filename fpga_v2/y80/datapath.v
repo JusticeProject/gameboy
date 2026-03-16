@@ -6,12 +6,12 @@
 /**                                                                                       **/
 /*******************************************************************************************/
 module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
-                 page_reg, par_bit, sign_bit, xhlt_reg,
+                 page_reg, par_bit, sign_bit,
                  zero_bit, add_sel, alua_sel, alub_sel, aluop_sel, clearb, clkc, cflg_en,
                  data_in, di_ctl, do_ctl, ex_af_pls, ex_bank_pls, ex_dehl_inst,
                  hflg_ctl, ld_ctrl, ld_inst, ld_page,
-                 nflg_ctl, nmi_req, page_sel, pc_sel, resetb, sflg_en,
-                 wait_st, wr_addr, zflg_en);
+                 nflg_ctl, page_sel, pc_sel, resetb, sflg_en,
+                 wr_addr, zflg_en);
 
   input         cflg_en;       /* carry flag control                                       */
   input         clearb;        /* master (testing) reset                                   */
@@ -22,10 +22,8 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   input         ld_ctrl;       /* load control register                                    */
   input         ld_inst;       /* load instruction register                                */
   input         ld_page;       /* load page register                                       */
-  input         nmi_req;       /* nmi request                                              */
   input         resetb;        /* internal (user) reset                                    */
   input         sflg_en;       /* sign flag control                                        */
-  input         wait_st;       /* wait state identifier                                    */
   input         zflg_en;       /* zero flag control                                        */
   input   [3:0] page_sel;      /* instruction decode "page" control                        */
   input   [7:0] data_in;       /* read data bus                                            */
@@ -42,7 +40,6 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   output        carry_bit;     /* carry flag                                               */
   output        par_bit;       /* parity flag                                              */
   output        sign_bit;      /* sign flag                                                */
-  output        xhlt_reg;      /* halt exit                                                */
   output        zero_bit;      /* zero flag                                                */
   output  [3:0] page_reg;      /* instruction decode "page"                                */
   output  [7:0] inst_reg;      /* instruction register                                     */
@@ -116,11 +113,7 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   reg          decr_sel, decr_op;                          /* decrement operation          */
   reg          ex_dehl_reg;                                /* special exchange             */
   reg          ld_pc;                                      /* load pc                      */
-  reg          nmi_hld;                                    /* nmi edge tracker             */
-  reg          nmi_reg;                                    /* latched nmi req              */
-  reg          valid_nmi, valid_xhlt;           /* valid int request            */
   reg          word_sel, word_op;                          /* 16-bit operation             */
-  reg          xhlt_reg;                                   /* halt exit                    */
   reg    [3:0] page_reg /* synthesis syn_preserve=1 */;
   reg    [7:0] inst_reg;                                   /* instruction register         */
   reg    [7:0] m_aa_reg, m_ff_reg, m_bb_reg, m_cc_reg;     /* individual registers         */
@@ -138,36 +131,6 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   reg  [`ALUB_IDX:0] alub_reg    /* synthesis syn_preserve=1 */;
   reg [`ALUOP_IDX:0] aluop_reg   /* synthesis syn_preserve=1 */;
 
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /* input synchronization                                                                 */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  always @ (posedge clkc or negedge resetb) begin
-    if (!resetb) begin
-      nmi_hld    <= 1'b0;
-      valid_nmi  <= 1'b0;
-      valid_xhlt <= 1'b0;
-      end
-    else begin
-      nmi_hld    <= (nmi_req && !valid_nmi) || (!(nmi_reg) && nmi_hld);
-      valid_nmi  <= nmi_req || nmi_hld;
-      valid_xhlt <= (nmi_req || nmi_hld);
-      end
-    end
-
-
-
-  always @ (posedge clkc or negedge resetb) begin
-    if (!resetb) begin
-      nmi_reg  <= 1'b0;
-      xhlt_reg <= 1'b0;
-      end
-    else begin
-      nmi_reg  <= valid_nmi;
-      xhlt_reg <= valid_xhlt;
-      end
-    end
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -176,9 +139,9 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   /*****************************************************************************************/
   always @* begin
     case (pc_sel)
-      `PC_LD:    ld_pc = !wait_st;                         /* load PC unconditionally      */
-      `PC_NILD:  ld_pc = !(valid_nmi) && !wait_st;
-      `PC_NILD2: ld_pc = !wait_st;     /* if no latched int     */
+      `PC_LD:    ld_pc = 1'b1;                         /* load PC unconditionally      */
+      `PC_NILD:  ld_pc = 1'b1;
+      `PC_NILD2: ld_pc = 1'b1;     /* if no latched int     */
       default:   ld_pc = 1'b0;
       endcase
     end
@@ -196,9 +159,8 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
       end
     end
 
-  assign ld_flag = (sflg_en || zflg_en || |hflg_ctl || |nflg_ctl ||
-                    cflg_en) && !wait_st;
-  assign ld_regf = wr_addr[`WR_REG] && !wait_st;
+  assign ld_flag = (sflg_en || zflg_en || |hflg_ctl || |nflg_ctl || cflg_en);
+  assign ld_regf = wr_addr[`WR_REG];
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -304,7 +266,7 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   /* data input and data output registers                                                  */
   /*                                                                                       */
   /*****************************************************************************************/
-  assign ld_dout_mem  = do_ctl[1] && !wait_st;
+  assign ld_dout_mem  = do_ctl[1];
 
   always @ (posedge clkc or negedge resetb) begin
     if (!resetb) begin

@@ -6,17 +6,15 @@
 /**                                                                                       **/
 /*******************************************************************************************/
 module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl, ex_af_pls,
-                ex_bank_pls, ex_dehl_inst, halt_nxt, hflg_ctl, if_frst,
-                ld_inst, ld_page, ld_wait, nflg_ctl, output_inh,
+                ex_bank_pls, ex_dehl_inst, hflg_ctl, if_frst,
+                ld_inst, ld_page, nflg_ctl, output_inh,
                 page_sel, pc_sel, rd_frst, sflg_en, state_nxt,
                 tran_sel, wr_addr, wr_frst, zflg_en, carry_bit, inst_reg,
-                page_reg, par_bit, sign_bit, state_reg,
-                xhlt_reg, zero_bit);
+                page_reg, par_bit, sign_bit, state_reg, zero_bit);
 
   input         carry_bit;     /* carry flag                                               */
   input         par_bit;       /* parity flag                                              */
   input         sign_bit;      /* sign flag                                                */
-  input         xhlt_reg;      /* halt exit                                                */
   input         zero_bit;      /* zero flag                                                */
   input   [3:0] page_reg;      /* instruction decode "page"                                */
   input   [7:0] inst_reg;      /* instruction register                                     */
@@ -25,11 +23,9 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   output        ex_af_pls;     /* exchange af,af'                                          */
   output        ex_bank_pls;   /* exchange register bank                                   */
   output        ex_dehl_inst;  /* exchange de,hl                                           */
-  output        halt_nxt;      /* halt cycle next                                          */
   output        if_frst;       /* ifetch first cycle                                       */
   output        ld_inst;       /* load instruction register                                */
   output        ld_page;       /* load page register                                       */
-  output        ld_wait;       /* load wait request                                        */
   output        output_inh;    /* disable cpu outputs                                      */
   output        rd_frst;       /* read first cycle                                         */
   output        sflg_en;       /* sign flag control                                        */
@@ -58,11 +54,9 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   reg           ex_af_pls;                                 /* exchange af,af'              */
   reg           ex_bank_pls;                               /* exchange register bank       */
   reg           ex_dehl_inst;                              /* exchange de,hl               */
-  reg           halt_nxt;                                  /* halt transaction             */
   reg           if_frst;                                   /* first clock if ifetch        */
   reg           ld_inst;                                   /* load instruction register    */
   reg           ld_page;                                   /* load page register           */
-  reg           ld_wait;                                   /* sample wait input            */
   reg           output_inh;                                /* disable cpu outputs          */
   reg           rd_frst;                                   /* first clock of read          */
   reg           sflg_en;                                   /* sign flag control            */
@@ -159,35 +153,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
 
   /*****************************************************************************************/
   /*                                                                                       */
-  /* wait sample                                                                           */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg or carry_bit or par_bit or
-            sign_bit or zero_bit) begin
-    casex (state_reg) //synopsys parallel_case
-      `DEC1: begin
-        casex (inst_reg) //synopsys parallel_case
-          default:          ld_wait = 1'b1;
-          endcase
-        end
-      `DEC2: begin
-        casex ({page_reg, inst_reg}) //synopsys parallel_case
-          default:          ld_wait = 1'b1;
-          endcase
-        end
-      `OF2A,
-      `IF3A,
-      `RD1A,
-      `RD2A,
-      `WR1A,
-      `WR2A,
-      `IF1A:                ld_wait = 1'b1;
-      default:              ld_wait = 1'b0;
-      endcase
-    end
-
-  /*****************************************************************************************/
-  /*                                                                                       */
   /* instruction register and page register control                                        */
   /*                                                                                       */
   /*****************************************************************************************/
@@ -236,7 +201,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*                                                                                       */
   /*****************************************************************************************/
   always @ (inst_reg or page_reg or state_reg or carry_bit or
-            par_bit or sign_bit or xhlt_reg or zero_bit) begin
+            par_bit or sign_bit or zero_bit) begin
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
@@ -254,7 +219,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           endcase
         end
       `HLTA:                state_nxt = `sHLTB;
-      `HLTB:                state_nxt = (xhlt_reg) ? `sIF1A : `sHLTA;
+      `HLTB:                state_nxt = `sHLTA;
       `IF1A:                state_nxt = `sIF1B;
       `IF1B:                state_nxt = `sDEC1;
       `RSTE:                state_nxt = `sIF1A;
@@ -268,7 +233,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*                                                                                       */
   /*****************************************************************************************/
   always @ (inst_reg or page_reg or state_reg or carry_bit or
-            par_bit or sign_bit or xhlt_reg or zero_bit) begin
+            par_bit or sign_bit or zero_bit) begin
     casex (state_reg) //synopsys parallel_case
       `IF2B:                tran_sel = `TRAN_IF;
       `OF1B: begin
@@ -286,27 +251,9 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           default:          tran_sel = `TRAN_IF;
           endcase
         end
-      `HLTB:                tran_sel = (xhlt_reg)   ? `TRAN_IF  : `TRAN_IDL;
+      `HLTB:                tran_sel = `TRAN_IDL;
       `RSTE:                tran_sel = `TRAN_IF;
       default:              tran_sel = `TRAN_RSTVAL;
-      endcase
-    end
-
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /*  special transaction identifiers                                                      */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg or xhlt_reg) begin
-    casex (state_reg)
-      `PCO,
-      `HLTB: begin
-        casex ({page_reg, inst_reg})
-          12'b000001110110: halt_nxt = !xhlt_reg;
-          default:          halt_nxt = 1'b0;
-          endcase
-        end
-      default:              halt_nxt = 1'b0;
       endcase
     end
 
@@ -316,7 +263,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*  output inhibit                                                                       */
   /*                                                                                       */
   /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg or xhlt_reg) begin
+  always @ (inst_reg or page_reg or state_reg) begin
     casex (state_reg)
       `IF1B: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
@@ -330,7 +277,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
       `PCO,
       `HLTB: begin
         casex ({page_reg, inst_reg})
-          12'b000001110110: output_inh = !xhlt_reg;
           default:          output_inh = 1'b0;
           endcase
         end
