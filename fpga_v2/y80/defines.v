@@ -13,13 +13,7 @@
   /*****************************************************************************************/
   `define MAIN_PG     4'b0000          //no instruction prefix byte(s)
   `define CB_PAGE     4'b0010          //CB instruction prefix
-  `define DD_PAGE     4'b0100          //DD instruction prefix
-  `define FD_PAGE     4'b0101          //FD instruction prefix
-  `define DDCB_PG     4'b0110          //DD-CB instruction prefix
-  `define FDCB_PG     4'b0111          //FD-CB instruction prefix
-  `define ED_PAGE     4'b1000          //ED instruction prefix
   `define DEC_MAIN    4'b0x0x          //main page or DD page or FD page
-  `define DEC_ED      4'b1xxx          //ED page
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -58,13 +52,11 @@
   `define TRAN_RSTVAL 6'b000000        //Transaction type reset value
   `define TRAN_IDL    6'b000010        //Idle transaction
   `define TRAN_IF     6'b000100        //Instruction fetch transaction
-  `define TRAN_IO     6'b001000        //I/O transaction
   `define TRAN_MEM    6'b010000        //Memory (data) transaction
   `define TRAN_STK    6'b100000        //Memory (stack) transaction
 
   `define TT_IDL      1                //Idle transaction
   `define TT_IF       2                //Instruction fetch transaction
-  `define TT_IO       3                //I/O transaction
   `define TT_MEM      4                //Memory (data) transaction
   `define TT_STK      5                //Memory (stack) transaction
 
@@ -73,11 +65,10 @@
   /* data output control: do_ctl - DO NOT MODIFY                                           */
   /*                                                                                       */
   /*****************************************************************************************/
-  `define DO_IDX      2
-  `define DO_NUL      3'b000           //No load
-  `define DO_IO       3'b010           //Load i/o data from lsb
-  `define DO_LSB      3'b100           //Load mem data from lsb
-  `define DO_MSB      3'b101           //Load mem data from msb
+  `define DO_IDX      1
+  `define DO_NUL      2'b00           //No load
+  `define DO_LSB      2'b10           //Load mem data from lsb
+  `define DO_MSB      2'b11           //Load mem data from msb
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -126,51 +117,41 @@
   `define NFLG_0      2'b10            //Load zero
   `define NFLG_1      2'b11            //Load one
 
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /* temporary flag control: tflg_ctl                                                      */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  `define TFLG_IDX    1
-  `define TFLG_NUL    2'b00            //No load
-  `define TFLG_Z      2'b01            //Load zero result
-  `define TFLG_1      2'b10            //Load one result (blk out)
-  `define TFLG_B      2'b11            //Load blk cp result
 
   /*****************************************************************************************/
   /*                                                                                       */
   /* write register control: wr_sel - unencoded                                            */
   /*                                                                                       */
   /*****************************************************************************************/
-  `define WREG_IDX 14
-  `define WREG_BB    15'b110000000000000         //Select B to write
-  `define WREG_BC    15'b111000000000000         //Select BC to write
-  `define WREG_CC    15'b101000000000000         //Select C to write
-  `define WREG_DD    15'b100100000000000         //Select D to write
-  `define WREG_DE    15'b100110000000000         //Select DE to write
-  `define WREG_EE    15'b100010000000000         //Select E to write
-  `define WREG_HH    15'b100001000000000         //Select H to write
-  `define WREG_HL    15'b100001100000000         //Select HL to write
-  `define WREG_LL    15'b100000100000000         //Select L to write
-  `define WREG_DEHL  15'b100111100000000         //Select DEHL to write (ex case)
-  `define WREG_AA    15'b100000010000000         //Select A to write
-  `define WREG_AF    15'b100000011000000         //Select A and F to write
-  `define WREG_FF    15'b100000001000000         //Select F to write
-  `define WREG_SP    15'b100000000100000         //Select SP to write
-  `define WREG_TMP   15'b100000000010000         //Select TMP register to write
-  `define WREG_NUL   15'b000000000000000         //No register write
+  `define WREG_IDX 10
+  `define WREG_BB    11'b11000000000         //Select B to write
+  `define WREG_BC    11'b11100000000         //Select BC to write
+  `define WREG_CC    11'b10100000000         //Select C to write
+  `define WREG_DD    11'b10010000000         //Select D to write
+  `define WREG_DE    11'b10011000000         //Select DE to write
+  `define WREG_EE    11'b10001000000         //Select E to write
+  `define WREG_HH    11'b10000100000         //Select H to write
+  `define WREG_HL    11'b10000110000         //Select HL to write
+  `define WREG_LL    11'b10000010000         //Select L to write
+  `define WREG_DEHL  11'b10011110000         //Select DEHL to write (ex case)
+  `define WREG_AA    11'b10000001000         //Select A to write
+  `define WREG_AF    11'b10000001100         //Select A and F to write
+  `define WREG_FF    11'b10000000100         //Select F to write
+  `define WREG_SP    11'b10000000010         //Select SP to write
+  `define WREG_TMP   11'b10000000001         //Select TMP register to write
+  `define WREG_NUL   11'b00000000000         //No register write
 
-  `define WR_REG     14                //register write
-  `define WR_BB      13                //BB register index
-  `define WR_CC      12                //CC register index
-  `define WR_DD      11                //DD register index
-  `define WR_EE      10                //EE register index
-  `define WR_HH       9                //HH register index
-  `define WR_LL       8                //LL register index
-  `define WR_AA       7                //AA register index
-  `define WR_FF       6                //FF register index
-  `define WR_SP       5                //SP register index
-  `define WR_TMP      4                //TMP register index
+  `define WR_REG     10                //register write
+  `define WR_BB       9                //BB register index
+  `define WR_CC       8                //CC register index
+  `define WR_DD       7                //DD register index
+  `define WR_EE       6                //EE register index
+  `define WR_HH       5                //HH register index
+  `define WR_LL       4                //LL register index
+  `define WR_AA       3                //AA register index
+  `define WR_FF       2                //FF register index
+  `define WR_SP       1                //SP register index
+  `define WR_TMP      0                //TMP register index
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -220,7 +201,6 @@
   `define ALUB_SPH    13'h0081         //Select SP register high byte
   `define ALUB_DIN    13'h0100         //Select data input register
   `define ALUB_DINH   13'h0101         //Select data input register high byte
-  `define ALUB_IO     13'h0200         //Select i/o address
   `define ALUB_TMP    13'h0400         //Select TMP register
   `define ALUB_PC     13'h1800         //Select PC register
   `define ALUB_PCH    13'h1801         //Select PC register high byte
@@ -232,7 +212,6 @@
   `define AB_HL       4                //alub hl
   `define AB_SP       7                //alub sp
   `define AB_DIN      8                //alub din
-  `define AB_IO       9                //alub io
   `define AB_TMP      10               //alub tmp
   `define AB_PC       11               //alub pc
   `define AB_ADR      12               //alub address pc

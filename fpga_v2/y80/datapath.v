@@ -5,12 +5,12 @@
 /** data path module                                                  Rev 0.0  08/22/2010 **/
 /**                                                                                       **/
 /*******************************************************************************************/
-module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
-                 page_reg, par_bit, sign_bit, tflg_reg, xhlt_reg,
+module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
+                 page_reg, par_bit, sign_bit, xhlt_reg,
                  zero_bit, add_sel, alua_sel, alub_sel, aluop_sel, clearb, clkc, cflg_en,
                  data_in, di_ctl, do_ctl, ex_af_pls, ex_bank_pls, ex_dehl_inst,
                  hflg_ctl, ld_ctrl, ld_inst, ld_page,
-                 nflg_ctl, nmi_req, page_sel, pc_sel, pflg_ctl, resetb, sflg_en, tflg_ctl,
+                 nflg_ctl, nmi_req, page_sel, pc_sel, pflg_ctl, resetb, sflg_en,
                  wait_st, wr_addr, zflg_en);
 
   input         cflg_en;       /* carry flag control                                       */
@@ -39,17 +39,14 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   input   [`NFLG_IDX:0] nflg_ctl;    /* negate flag control                                */
   input  [`PCCTL_IDX:0] pc_sel;      /* program counter source control                     */
   input   [`PFLG_IDX:0] pflg_ctl;    /* parity/overflow flag control                       */
-  input   [`TFLG_IDX:0] tflg_ctl;    /* temp flag control                                  */
   input   [`WREG_IDX:0] wr_addr;     /* register write address bus                         */
   output        carry_bit;     /* carry flag                                               */
   output        par_bit;       /* parity flag                                              */
   output        sign_bit;      /* sign flag                                                */
-  output        tflg_reg;      /* temporary flag                                           */
   output        xhlt_reg;      /* halt exit                                                */
   output        zero_bit;      /* zero flag                                                */
   output  [3:0] page_reg;      /* instruction decode "page"                                */
   output  [7:0] inst_reg;      /* instruction register                                     */
-  output  [7:0] dout_io_reg;   /* i/o write data bus                                       */
   output  [7:0] dout_mem_reg;  /* memory write data bus                                    */
   output [15:0] addr_reg_in;   /* processor address bus                                    */
 
@@ -85,10 +82,9 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   wire         ld_a_dd, ld_a_ee, ld_a_hh, ld_a_ll;
   wire         ld_sp;
   wire         ld_tmp;
-  wire         ld_dout_io, ld_dout_mem;                    /* load data out                */
+  wire         ld_dout_mem;                    /* load data out                */
   wire         ld_flag;                                    /* load flags                   */
   wire         ld_regf;                                    /* load register file           */
-  wire         ld_tflg;                                    /* load temp flag               */
   wire         logic_c;                                    /* logic carry                  */
   wire         logic_hc;                                   /* logic half-carry             */
   wire         one_nxt;                                    /* combined one                 */
@@ -123,7 +119,6 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   reg          ld_pc;                                      /* load pc                      */
   reg          nmi_hld;                                    /* nmi edge tracker             */
   reg          nmi_reg;                                    /* latched nmi req              */
-  reg          tflg_nxt, tflg_reg;                         /* temp flag                    */
   reg          valid_nmi, valid_xhlt;           /* valid int request            */
   reg          word_sel, word_op;                          /* 16-bit operation             */
   reg          xhlt_reg;                                   /* halt exit                    */
@@ -134,7 +129,7 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
   reg    [7:0] a_aa_reg, a_ff_reg, a_bb_reg, a_cc_reg;
   reg    [7:0] a_dd_reg, a_ee_reg, a_hh_reg, a_ll_reg;
   reg    [7:0] din0_reg, din1_reg;                         /* data input registers         */
-  reg    [7:0] dout_io_reg, dout_mem_reg;                  /* data output registers        */
+  reg    [7:0] dout_mem_reg;                  /* data output registers        */
   reg   [15:0] adda_out;                                   /* address alu out              */
   reg   [15:0] pc_reg;                                     /* program counter              */
   reg   [15:0] sp_reg;                                     /* stack pointer                */
@@ -307,44 +302,20 @@ module datapath (addr_reg_in, carry_bit, dout_io_reg, dout_mem_reg, inst_reg,
 
   /*****************************************************************************************/
   /*                                                                                       */
-  /* temporary flag                                                                        */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  assign ld_tflg = |tflg_ctl && !wait_st;
-
-  always @ (tflg_ctl or alu_one or alu_zero or ff_reg_out) begin
-    casex (tflg_ctl)
-      `TFLG_1:  tflg_nxt = alu_one;                        /* blk set if done (next xfr)   */
-      `TFLG_Z:  tflg_nxt = alu_zero;                       /* blk set if done (this xfr)   */
-      `TFLG_B:  tflg_nxt = alu_zero || !ff_reg_out[2];     /* blk cp set if done or match  */
-      default:  tflg_nxt = 1'b0;
-      endcase
-    end
-
-  always @ (posedge clkc or negedge resetb) begin
-    if      (!resetb) tflg_reg <= 1'b0;
-    else if (ld_tflg) tflg_reg <= tflg_nxt;
-    end
-
-  /*****************************************************************************************/
-  /*                                                                                       */
   /* data input and data output registers                                                  */
   /*                                                                                       */
   /*****************************************************************************************/
-  assign ld_dout_io   = do_ctl[1] && !wait_st;
-  assign ld_dout_mem  = do_ctl[2] && !wait_st;
+  assign ld_dout_mem  = do_ctl[1] && !wait_st;
 
   always @ (posedge clkc or negedge resetb) begin
     if (!resetb) begin
       din0_reg     <= 8'h00;
       din1_reg     <= 8'h00;
-      dout_io_reg  <= 8'h00;
       dout_mem_reg <= 8'h00;
       end
     else begin
       if (di_ctl[0])   din0_reg     <= data_in;
       if (di_ctl[1])   din1_reg     <= data_in;
-      if (ld_dout_io)  dout_io_reg  <= data_bus[7:0];
       if (ld_dout_mem) dout_mem_reg <= (do_ctl[0]) ? data_bus[15:8] : data_bus[7:0];
       end
     end

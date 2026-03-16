@@ -29,11 +29,11 @@ module alubmux (addb_in, alub_in, alub_reg, af_reg_out, bc_reg_out, de_reg_out, 
   wire [15:0] alub_in;
   reg  [15:0] alub_mux;
   reg  [15:0] alub_mux_1, alub_mux_2, alub_mux_3, alub_mux_4, alub_mux_5;
-  reg  [15:0] alub_mux_6, alub_mux_7, alub_mux_8, alub_mux_9, alub_mux_10, alub_mux_11;
+  reg  [15:0] alub_mux_6, alub_mux_7, alub_mux_8, alub_mux_10, alub_mux_11;
 
   wire [15:0] addb_in;
   wire [15:0] addb_mux_2, addb_mux_3, addb_mux_4, addb_mux_7;
-  wire [15:0] addb_mux_8, addb_mux_9, addb_mux_10, addb_mux_12;
+  wire [15:0] addb_mux_8, addb_mux_10, addb_mux_12;
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -50,7 +50,6 @@ module alubmux (addb_in, alub_in, alub_reg, af_reg_out, bc_reg_out, de_reg_out, 
     alub_mux_6  = 32'h0;
     alub_mux_7  = 32'h0;
     alub_mux_8  = 32'h0;
-    alub_mux_9  = 32'h0;
     alub_mux_10 = 32'h0;
     alub_mux_11 = 32'h0;
     if (alub_reg[`AB_AF])  alub_mux_1  = af_reg_out;
@@ -59,16 +58,15 @@ module alubmux (addb_in, alub_in, alub_reg, af_reg_out, bc_reg_out, de_reg_out, 
     if (alub_reg[`AB_HL])  alub_mux_4  = hl_reg_out;
     if (alub_reg[`AB_SP])  alub_mux_7  = sp_reg;
     if (alub_reg[`AB_DIN]) alub_mux_8  = {din1_reg, din0_reg};
-    if (alub_reg[`AB_IO])  alub_mux_9  = {af_reg_out[15:8], din0_reg};
     if (alub_reg[`AB_TMP]) alub_mux_10 =  tmp_reg;
     if (alub_reg[`AB_PC])  alub_mux_11 = pc_reg;
     end
 
   always @ (alub_mux_1 or alub_mux_2 or alub_mux_3 or alub_mux_4 or alub_mux_5 or
-            alub_mux_6 or alub_mux_7 or alub_mux_8 or alub_mux_9 or alub_mux_10 or
+            alub_mux_6 or alub_mux_7 or alub_mux_8 or alub_mux_10 or
             alub_mux_11) begin
     alub_mux = alub_mux_1 | alub_mux_2 | alub_mux_3 | alub_mux_4 | alub_mux_5 |
-               alub_mux_6 | alub_mux_7 | alub_mux_8 | alub_mux_9 | alub_mux_10 | alub_mux_11;
+               alub_mux_6 | alub_mux_7 | alub_mux_8 | alub_mux_10 | alub_mux_11;
     end
 
   assign alub_in  = (alub_reg[`AB_SHR]) ? {alub_mux[15:8], alub_mux[15:8]} : alub_mux;
@@ -83,12 +81,11 @@ module alubmux (addb_in, alub_in, alub_reg, af_reg_out, bc_reg_out, de_reg_out, 
   assign addb_mux_4  = (alub_reg[`AB_HL])  ? hl_reg_out                   : 16'h0;
   assign addb_mux_7  = (alub_reg[`AB_SP])  ? sp_reg                       : 16'h0;
   assign addb_mux_8  = (alub_reg[`AB_DIN]) ? {din1_reg, din0_reg}         : 16'h0;
-  assign addb_mux_9  = (alub_reg[`AB_IO])  ? {af_reg_out[15:8], din0_reg} : 16'h0;
   assign addb_mux_10 = (alub_reg[`AB_TMP]) ? tmp_reg                      : 16'h0;
   assign addb_mux_12 = (alub_reg[`AB_ADR]) ? pc_reg                       : 16'h0;
 
   assign addb_in =  addb_mux_2 | addb_mux_3 | addb_mux_4 |
-                    addb_mux_7  | addb_mux_8 |addb_mux_9 | addb_mux_10 | addb_mux_12;
+                    addb_mux_7  | addb_mux_8 | addb_mux_10 | addb_mux_12;
 
   endmodule
 

@@ -8,15 +8,14 @@
 module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl, ex_af_pls,
                 ex_bank_pls, ex_dehl_inst, halt_nxt, hflg_ctl, if_frst,
                 ld_inst, ld_page, ld_wait, nflg_ctl, output_inh,
-                page_sel, pc_sel, pflg_ctl, rd_frst, rd_nxt, sflg_en, state_nxt,
-                tflg_ctl, tran_sel, wr_addr, wr_frst, zflg_en, carry_bit, inst_reg,
-                page_reg, par_bit, sign_bit, state_reg, tflg_reg,
+                page_sel, pc_sel, pflg_ctl, rd_frst, sflg_en, state_nxt,
+                tran_sel, wr_addr, wr_frst, zflg_en, carry_bit, inst_reg,
+                page_reg, par_bit, sign_bit, state_reg,
                 xhlt_reg, zero_bit);
 
   input         carry_bit;     /* carry flag                                               */
   input         par_bit;       /* parity flag                                              */
   input         sign_bit;      /* sign flag                                                */
-  input         tflg_reg;      /* temporary flag                                           */
   input         xhlt_reg;      /* halt exit                                                */
   input         zero_bit;      /* zero flag                                                */
   input   [3:0] page_reg;      /* instruction decode "page"                                */
@@ -33,7 +32,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   output        ld_wait;       /* load wait request                                        */
   output        output_inh;    /* disable cpu outputs                                      */
   output        rd_frst;       /* read first cycle                                         */
-  output        rd_nxt;        /* read cycle identifier                                    */
   output        sflg_en;       /* sign flag control                                        */
   output        wr_frst;       /* write first cycle                                        */
   output        zflg_en;       /* zero flag control                                        */
@@ -49,7 +47,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   output [`PCCTL_IDX:0] pc_sel;      /* program counter source control                     */
   output  [`PFLG_IDX:0] pflg_ctl;    /* parity/overflow flag control                       */
   output [`STATE_IDX:0] state_nxt;   /* next processor state                               */
-  output  [`TFLG_IDX:0] tflg_ctl;    /* temp flag control                                  */
   output [`TTYPE_IDX:0] tran_sel;    /* transaction type select                            */
   output  [`WREG_IDX:0] wr_addr;     /* register write address bus                         */
 
@@ -69,7 +66,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   reg           ld_wait;                                   /* sample wait input            */
   reg           output_inh;                                /* disable cpu outputs          */
   reg           rd_frst;                                   /* first clock of read          */
-  reg           rd_nxt;                                    /* read trans next              */
   reg           sflg_en;                                   /* sign flag control            */
   reg           wr_frst;                                   /* first clock of write         */
   reg           zflg_en;                                   /* zero flag control            */
@@ -85,7 +81,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   reg   [`PCCTL_IDX:0] pc_sel;                             /* pc source control            */
   reg    [`PFLG_IDX:0] pflg_ctl;                           /* parity/overflow flag control */
   reg   [`STATE_IDX:0] state_nxt;                          /* machine state                */
-  reg    [`TFLG_IDX:0] tflg_ctl;                           /* temp flag control            */
   reg   [`TTYPE_IDX:0] tran_sel;                           /* transaction type             */
   reg    [`WREG_IDX:0] wr_addr;                            /* register write address bus   */
 
@@ -145,15 +140,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
       `IF3A,
       `IF1A:                if_frst = 1'b1;
       default:              if_frst = 1'b0;
-      endcase
-    end
-
-
-  always @ (inst_reg or page_reg or state_nxt) begin
-    casex (state_nxt) //synopsys parallel_case
-      `RD1A,
-      `RD2A:                rd_nxt = 1'b1;
-      default:              rd_nxt = 1'b0;
       endcase
     end
 
@@ -265,16 +251,11 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
       `DEC1: begin
         case (inst_reg)
           8'b11001011:      page_sel = `CB_PAGE;
-          8'b11011101:      page_sel = `DD_PAGE;
-          8'b11101101:      page_sel = `ED_PAGE;
-          8'b11111101:      page_sel = `FD_PAGE;
           default:          page_sel = `MAIN_PG;
           endcase
         end
       `DEC2: begin
         casex ({page_reg, inst_reg})
-          12'bx10011001011: page_sel = `DDCB_PG;
-          12'bx10111001011: page_sel = `FDCB_PG;
           default:          page_sel = `MAIN_PG;
           endcase
         end
@@ -301,7 +282,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*                                                                                       */
   /*****************************************************************************************/
   always @ (inst_reg or page_reg or state_reg or carry_bit or
-            par_bit or sign_bit or tflg_reg or xhlt_reg or zero_bit) begin
+            par_bit or sign_bit or xhlt_reg or zero_bit) begin
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
@@ -392,7 +373,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*                                                                                       */
   /*****************************************************************************************/
   always @ (inst_reg or page_reg or state_reg or carry_bit or
-            par_bit or sign_bit or tflg_reg or xhlt_reg or zero_bit) begin
+            par_bit or sign_bit or xhlt_reg or zero_bit) begin
     casex (state_reg) //synopsys parallel_case
       `IF2B:                tran_sel = `TRAN_IF;
       `OF1B: begin
@@ -550,8 +531,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*  program counter control                                                              */
   /*                                                                                       */
   /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg or carry_bit or par_bit or sign_bit or
-            tflg_reg or zero_bit) begin
+  always @ (inst_reg or page_reg or state_reg or carry_bit or par_bit or sign_bit or zero_bit) begin
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
@@ -688,10 +668,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           12'b000011xx0101,
           12'b000011xxx111,
           12'b0001xxxxxxxx: do_ctl = `DO_MSB;
-          12'b1xxx10100011,
-          12'b1xxx10101011,
-          12'b1xxx10110011,
-          12'b1xxx10111011: do_ctl = `DO_IO;
           default:          do_ctl = `DO_LSB;
           endcase
         end
@@ -702,14 +678,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           12'b010x11100011,
           12'b000011100011,
           12'b1xxx01xx0011: do_ctl = `DO_MSB;
-          12'b000011010011,
-          12'b1xxx0x0xx001,
-          12'b1xxx0x10x001,
-          12'b1xxx0x111001,
-          12'b1xxx10100011,
-          12'b1xxx10101011,
-          12'b1xxx10110011,
-          12'b1xxx10111011: do_ctl = `DO_IO;
           default:          do_ctl = `DO_LSB;
           endcase
         end
@@ -810,8 +778,7 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   /*  alu a input control                                                                  */
   /*                                                                                       */
   /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg or carry_bit or par_bit or sign_bit or
-            tflg_reg or zero_bit) begin
+  always @ (inst_reg or page_reg or state_reg or carry_bit or par_bit or sign_bit or zero_bit) begin
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
@@ -1286,29 +1253,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           endcase
         end
       default:              cflg_en = 1'b0;
-      endcase
-    end
-
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /* temporary flag control                                                                */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg) begin
-    casex (state_reg) //synopsys parallel_case
-      `OF1B:                tflg_ctl = `TFLG_Z;
-      `RD1A,
-      `RD2A: begin
-        casex ({page_reg, inst_reg})
-          12'b1xxx10100011,
-          12'b1xxx10101011,
-          12'b1xxx10110011,
-          12'b1xxx10111011: tflg_ctl = `TFLG_1;
-          default:          tflg_ctl = `TFLG_Z;
-          endcase
-        end
-      `BLK1:                tflg_ctl = `TFLG_B;
-      default:              tflg_ctl = `TFLG_NUL;
       endcase
     end
 
