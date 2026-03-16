@@ -10,7 +10,7 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
                  zero_bit, add_sel, alua_sel, alub_sel, aluop_sel, clearb, clkc, cflg_en,
                  data_in, di_ctl, do_ctl, ex_af_pls, ex_bank_pls, ex_dehl_inst,
                  hflg_ctl, ld_ctrl, ld_inst, ld_page,
-                 nflg_ctl, nmi_req, page_sel, pc_sel, pflg_ctl, resetb, sflg_en,
+                 nflg_ctl, nmi_req, page_sel, pc_sel, resetb, sflg_en,
                  wait_st, wr_addr, zflg_en);
 
   input         cflg_en;       /* carry flag control                                       */
@@ -38,7 +38,6 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   input   [`HFLG_IDX:0] hflg_ctl;    /* half-carry flag control                            */
   input   [`NFLG_IDX:0] nflg_ctl;    /* negate flag control                                */
   input  [`PCCTL_IDX:0] pc_sel;      /* program counter source control                     */
-  input   [`PFLG_IDX:0] pflg_ctl;    /* parity/overflow flag control                       */
   input   [`WREG_IDX:0] wr_addr;     /* register write address bus                         */
   output        carry_bit;     /* carry flag                                               */
   output        par_bit;       /* parity flag                                              */
@@ -197,7 +196,7 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
       end
     end
 
-  assign ld_flag = (sflg_en || zflg_en || |hflg_ctl || |pflg_ctl || |nflg_ctl ||
+  assign ld_flag = (sflg_en || zflg_en || |hflg_ctl || |nflg_ctl ||
                     cflg_en) && !wait_st;
   assign ld_regf = wr_addr[`WR_REG] && !wait_st;
 
@@ -494,22 +493,11 @@ module datapath (addr_reg_in, carry_bit, dout_mem_reg, inst_reg,
   assign alu_sign  = sign_nxt;
   assign alu_zero  = zero_nxt;
 
-  always @ (pflg_ctl or adder_ov or par_nxt or zero_nxt) begin
-    case (pflg_ctl)
-      `PFLG_V: alu_ovflo = adder_ov;
-      `PFLG_1: alu_ovflo = 1'b1;
-      `PFLG_P: alu_ovflo = par_nxt;
-      `PFLG_B: alu_ovflo = !zero_nxt;
-      default: alu_ovflo = 1'b0;
-      endcase
-    end
-
   assign new_flags[7] = (sflg_en)   ? alu_sign  : ff_reg_out[7];
   assign new_flags[6] = (zflg_en)   ? alu_zero  : ff_reg_out[6];
   assign new_flags[5] =                           ff_reg_out[5];
   assign new_flags[4] = (|hflg_ctl) ? alu_hcar  : ff_reg_out[4];
   assign new_flags[3] =                           ff_reg_out[3];
-  assign new_flags[2] = (|pflg_ctl) ? alu_ovflo : ff_reg_out[2];
   assign new_flags[1] = (|nflg_ctl) ? alu_neg   : ff_reg_out[1];
   assign new_flags[0] = (cflg_en)   ? alu_carry : ff_reg_out[0];
 

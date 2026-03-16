@@ -8,7 +8,7 @@
 module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl, ex_af_pls,
                 ex_bank_pls, ex_dehl_inst, halt_nxt, hflg_ctl, if_frst,
                 ld_inst, ld_page, ld_wait, nflg_ctl, output_inh,
-                page_sel, pc_sel, pflg_ctl, rd_frst, sflg_en, state_nxt,
+                page_sel, pc_sel, rd_frst, sflg_en, state_nxt,
                 tran_sel, wr_addr, wr_frst, zflg_en, carry_bit, inst_reg,
                 page_reg, par_bit, sign_bit, state_reg,
                 xhlt_reg, zero_bit);
@@ -45,7 +45,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   output  [`HFLG_IDX:0] hflg_ctl;    /* half-carry flag control                            */
   output  [`NFLG_IDX:0] nflg_ctl;    /* negate flag control                                */
   output [`PCCTL_IDX:0] pc_sel;      /* program counter source control                     */
-  output  [`PFLG_IDX:0] pflg_ctl;    /* parity/overflow flag control                       */
   output [`STATE_IDX:0] state_nxt;   /* next processor state                               */
   output [`TTYPE_IDX:0] tran_sel;    /* transaction type select                            */
   output  [`WREG_IDX:0] wr_addr;     /* register write address bus                         */
@@ -79,7 +78,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   reg    [`HFLG_IDX:0] hflg_ctl;                           /* half-carry flag control      */
   reg    [`NFLG_IDX:0] nflg_ctl;                           /* negate flag control          */
   reg   [`PCCTL_IDX:0] pc_sel;                             /* pc source control            */
-  reg    [`PFLG_IDX:0] pflg_ctl;                           /* parity/overflow flag control */
   reg   [`STATE_IDX:0] state_nxt;                          /* machine state                */
   reg   [`TTYPE_IDX:0] tran_sel;                           /* transaction type             */
   reg    [`WREG_IDX:0] wr_addr;                            /* register write address bus   */
@@ -169,55 +167,11 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
-          8'b00000010,
-          8'b00001010,
-          8'b00010010,
-          8'b00011010,
-          8'b00110100,
-          8'b00110101,
-          8'b011100xx,
-          8'b0111010x,
-          8'b01110111,
-          8'b010xx110,
-          8'b0110x110,
-          8'b01111110,
-          8'b10000110,
-          8'b10001110,
-          8'b10010110,
-          8'b10011110,
-          8'b10100110,
-          8'b10101110,
-          8'b10110110,
-          8'b10111110,
-          8'b11001001,
-          8'b11100011,
-          8'b11xx0001,
-          8'b11xx0101,
-          8'b11xxx111,
-          8'b01110110,
-          8'b11101001:      ld_wait = 1'b0;
-          8'b11000000:      ld_wait =   zero_bit;
-          8'b11001000:      ld_wait =  !zero_bit;
-          8'b11010000:      ld_wait =  carry_bit;
-          8'b11011000:      ld_wait = !carry_bit;
-          8'b11100000:      ld_wait =    par_bit;
-          8'b11101000:      ld_wait =   !par_bit;
-          8'b11110000:      ld_wait =   sign_bit;
-          8'b11111000:      ld_wait =  !sign_bit;
           default:          ld_wait = 1'b1;
           endcase
         end
       `DEC2: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b0010xxxxx110,
-          12'b010x11100001,
-          12'b010x11100011,
-          12'b010x11100101,
-          12'b1xxx0100x101,
-          12'b1xxx0110x111,
-          12'b1xxx01xxx00x,
-          12'b1xxx101xx0xx,
-          12'b010x11101001: ld_wait = 1'b0;
           default:          ld_wait = 1'b1;
           endcase
         end
@@ -286,68 +240,9 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
-          8'b00000010,
-          8'b00001010,
-          8'b00010010,
-          8'b00011010,
-          8'b00110100,
-          8'b00110101,
-          8'b011100xx,
-          8'b0111010x,
-          8'b01110111,
-          8'b010xx110,
-          8'b0110x110,
-          8'b01111110,
-          8'b10000110,
-          8'b10001110,
-          8'b10010110,
-          8'b10011110,
-          8'b10100110,
-          8'b10101110,
-          8'b10110110,
-          8'b10111110,
-          8'b11001001,
-          8'b11100011,
-          8'b11xx0001,
-          8'b11xx0101,
-          8'b11xxx111:      state_nxt = `sADR2;
-          8'b11000000:      state_nxt = ( !zero_bit) ? `sADR2 : `sIF1B;
-          8'b11001000:      state_nxt = (  zero_bit) ? `sADR2 : `sIF1B;
-          8'b11010000:      state_nxt = (!carry_bit) ? `sADR2 : `sIF1B;
-          8'b11011000:      state_nxt = ( carry_bit) ? `sADR2 : `sIF1B;
-          8'b11100000:      state_nxt = (  !par_bit) ? `sADR2 : `sIF1B;
-          8'b11101000:      state_nxt = (   par_bit) ? `sADR2 : `sIF1B;
-          8'b11110000:      state_nxt = ( !sign_bit) ? `sADR2 : `sIF1B;
-          8'b11111000:      state_nxt = (  sign_bit) ? `sADR2 : `sIF1B;
-          8'b11001011,
-          8'b11011101,
-          8'b11101101,
-          8'b11111101:      state_nxt = `sIF2B;
-          8'b00010000,
-          8'b00011000,
-          8'b00100010,
-          8'b00101010,
-          8'b00110010,
-          8'b00111010,
-          8'b001xx000,
-          8'b00xx0001,
-          8'b00xxx110,
-          8'b11000011,
-          8'b11000110,
-          8'b11001101,
-          8'b11001110,
-          8'b11010011,
-          8'b11010110,
-          8'b11011011,
-          8'b11011110,
-          8'b11100110,
-          8'b11101110,
-          8'b11110110,
-          8'b11111110,
-          8'b11xxx010,
-          8'b11xxx100:      state_nxt = `sOF1B;
-          8'b01110110,
-          8'b11101001:      state_nxt = `sPCO;
+          8'b00xxx110,                               // LD A,n8
+          8'b11000011:      state_nxt = `sOF1B;      // JP n16
+          8'b01110110:      state_nxt = `sPCO;       // HALT
           default:          state_nxt = `sIF1B;
           endcase
         end
@@ -378,46 +273,16 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
       `IF2B:                tran_sel = `TRAN_IF;
       `OF1B: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b000000010000,
-          12'b000000011000,
-          12'b000011010011,
-          12'b000011011011,
-          12'b010x00110100,
-          12'b010x00110101,
-          12'b010x011100xx,
-          12'b010x0111010x,
-          12'b010x01110111,
-          12'b010x010xx110,
-          12'b010x0110x110,
-          12'b010x01111110,
-          12'b010x10000110,
-          12'b010x10001110,
-          12'b010x10010110,
-          12'b010x10011110,
-          12'b010x10100110,
-          12'b010x10101110,
-          12'b010x10110110,
-          12'b010x10111110: tran_sel = `TRAN_IDL;
-          12'b000000100000: tran_sel = (  zero_bit) ? `TRAN_IF : `TRAN_IDL;
-          12'b000000101000: tran_sel = ( !zero_bit) ? `TRAN_IF : `TRAN_IDL;
-          12'b000000110000: tran_sel = ( carry_bit) ? `TRAN_IF : `TRAN_IDL;
-          12'b000000111000: tran_sel = (!carry_bit) ? `TRAN_IF : `TRAN_IDL;
-          12'b000000110110: tran_sel = `TRAN_MEM;
           default:          tran_sel = `TRAN_IF;
           endcase
         end
       `PCO: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b000001110110: tran_sel = `TRAN_IDL;
           default:          tran_sel = `TRAN_IF;
           endcase
         end
       `IF1B: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b1xxx01000101,
-          12'b1xxx01001101,
-          12'b000011110011,
-          12'b0001xxxxxxxx: tran_sel = `TRAN_IF;
           default:          tran_sel = `TRAN_IF;
           endcase
         end
@@ -695,77 +560,12 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
     casex (state_reg) //synopsys parallel_case
       `DEC1: begin
         casex (inst_reg) //synopsys parallel_case
-          8'b00xx0011,
-          8'b00xx1001,
-          8'b00xx1011,
-          8'b11100011,
-          8'b11xx0101,
-          8'b11xxx111:      aluop_sel = `ALUOP_ADD;
-          8'b10001xxx:      aluop_sel = `ALUOP_BADC;
-          8'b00010000,
-          8'b00xxx100,
-          8'b10000xxx:      aluop_sel = `ALUOP_BADD;
-          8'b10100xxx:      aluop_sel = `ALUOP_BAND;
-          8'b00xxx101:      aluop_sel = `ALUOP_BDEC;
-          8'b10110xxx:      aluop_sel = `ALUOP_BOR;
-          8'b10011xxx:      aluop_sel = `ALUOP_BSBC;
-          8'b10010xxx,
-          8'b10111xxx:      aluop_sel = `ALUOP_BSUB;
-          8'b00101111,
-          8'b10101xxx:      aluop_sel = `ALUOP_BXOR;
-          8'b00111111:      aluop_sel = `ALUOP_CCF;
-          8'b00100111:      aluop_sel = `ALUOP_DAA;
-          8'b00010111:      aluop_sel = `ALUOP_RLA;
-          8'b00000111:      aluop_sel = `ALUOP_RLCA;
-          8'b00011111:      aluop_sel = `ALUOP_RRA;
-          8'b00001111:      aluop_sel = `ALUOP_RRCA;
-          8'b00110111:      aluop_sel = `ALUOP_SCF;
+          8'b00xxx100:      aluop_sel = `ALUOP_BADD;           // INC A
           default:          aluop_sel = `ALUOP_PASS;
           endcase
         end
       `IF1A: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b1xxx10100000,
-          12'b1xxx10100010,
-          12'b1xxx10101000,
-          12'b1xxx10101010,
-          12'b1xxx10110000,
-          12'b1xxx10110010,
-          12'b1xxx10111000,
-          12'b1xxx10111010: aluop_sel = `ALUOP_ADD;
-          12'b000010001xxx,
-          12'b000011001110,
-          12'b010x10001110: aluop_sel = `ALUOP_BADC;
-          12'b000010000xxx,
-          12'b000011000110,
-          12'b010x10000110,
-          12'b1xxx10100011,
-          12'b1xxx10101011,
-          12'b1xxx10110011,
-          12'b1xxx10111011: aluop_sel = `ALUOP_BADD;
-          12'b000010100xxx,
-          12'b001001xxxxxx,
-          12'b010x10100110,
-          12'b011x01xxx110,
-          12'b000011100110,
-          12'b1xxx01xxx000: aluop_sel = `ALUOP_BAND;
-          12'b000010110xxx,
-          12'b010x10110110,
-          12'b000011110110: aluop_sel = `ALUOP_BOR;
-          12'b000010011xxx,
-          12'b010x10011110,
-          12'b000011011110: aluop_sel = `ALUOP_BSBC;
-          12'b000010010xxx,
-          12'b000010111xxx,
-          12'b000011010110,
-          12'b010x10010110,
-          12'b010x10111110,
-          12'b000011111110: aluop_sel = `ALUOP_BSUB;
-          12'b000010101xxx,
-          12'b010x10101110,
-          12'b000011101110: aluop_sel = `ALUOP_BXOR;
-          12'b1xxx01101111: aluop_sel = `ALUOP_RLD2;
-          12'b1xxx01100111: aluop_sel = `ALUOP_RRD2;
           default:          aluop_sel = `ALUOP_PASS;
           endcase
         end
@@ -1173,31 +973,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           endcase
         end
       default:              hflg_ctl = `HFLG_NUL;
-      endcase
-    end
-
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /*  pv flag control                                                                      */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg) begin
-    casex (state_reg) //synopsys parallel_case
-      `RD1A,
-      `RD2A: begin
-        casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b1xxx10100000,
-          12'b1xxx10100001,
-          12'b1xxx10101000,
-          12'b1xxx10101001,
-          12'b1xxx10110000,
-          12'b1xxx10110001,
-          12'b1xxx10111000,
-          12'b1xxx10111001: pflg_ctl = `PFLG_B;
-          default:          pflg_ctl = `PFLG_NUL;
-          endcase
-        end
-      default:              pflg_ctl = `PFLG_NUL;
       endcase
     end
 

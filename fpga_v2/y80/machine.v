@@ -6,12 +6,11 @@
 /**                                                                                       **/
 /*******************************************************************************************/
 module machine (ld_ctrl, state_reg, wait_st, clkc, ld_wait,
-                resetb, state_nxt, wait_req);
+                resetb, state_nxt);
 
   input         clkc;          /* main cpu clock                                           */
   input         ld_wait;       /* load wait request                                        */
   input         resetb;        /* internal reset                                           */
-  input         wait_req;      /* wait request                                             */
   input   [`STATE_IDX:0] state_nxt;   /* next processor state                              */
   output        ld_ctrl;       /* load control register                                    */
   output        wait_st;       /* wait state identifier                                    */
@@ -32,7 +31,7 @@ module machine (ld_ctrl, state_reg, wait_st, clkc, ld_wait,
   /* processor state machine                                                               */
   /*                                                                                       */
   /*****************************************************************************************/
-  assign ld_ctrl = !ld_wait || !wait_req;
+  assign ld_ctrl = !ld_wait;
 
   always @ (posedge clkc or negedge resetb) begin
     if (!resetb) wait_st   <= 1'b0;

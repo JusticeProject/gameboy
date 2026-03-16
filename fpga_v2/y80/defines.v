@@ -94,20 +94,6 @@
 
   /*****************************************************************************************/
   /*                                                                                       */
-  /* parity/overflow flag control: pflg_ctl                                                */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  `define PFLG_IDX    2
-  `define PFLG_NUL    3'b000           //No load
-  `define PFLG_V      3'b001           //Load overflow result
-  `define PFLG_0      3'b010           //Load zero
-  `define PFLG_1      3'b011           //Load one
-  `define PFLG_P      3'b100           //Load parity result
-  `define PFLG_B      3'b101           //Load block count zero result
-  `define PFLG_F      3'b111           //Load ief
-
-  /*****************************************************************************************/
-  /*                                                                                       */
   /* negate flag control: nflg_ctl - DO NOT MODIFY                                         */
   /*                                                                                       */
   /*****************************************************************************************/

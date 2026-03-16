@@ -7,13 +7,12 @@
 /*******************************************************************************************/
 
 module y80_top (halt_tran, mem_addr_out, mem_data_out, mem_rd, mem_tran, mem_wr,
-                t1, clearb, clkc, mem_data_in, nmi_req, resetb, wait_req);
+                t1, clearb, clkc, mem_data_in, nmi_req, resetb);
 
   input         clearb;        /* master (test) reset                                      */
   input         clkc;          /* main cpu clock                                           */
   input         nmi_req;       /* nmi request                                              */
   input         resetb;        /* internal (user) reset                                    */
-  input         wait_req;      /* wait request                                             */
   input   [7:0] mem_data_in;   /* memory input bus                                         */
   output        halt_tran;     /* halt transaction                                         */
   output        mem_rd;        /* memory read enable                                       */
@@ -74,7 +73,6 @@ module y80_top (halt_tran, mem_addr_out, mem_data_out, mem_rd, mem_tran, mem_wr,
   wire   [`HFLG_IDX:0] hflg_ctl;                           /* half-carry flag control      */
   wire   [`NFLG_IDX:0] nflg_ctl;                           /* negate flag control          */
   wire  [`PCCTL_IDX:0] pc_sel;                             /* pc source control            */
-  wire   [`PFLG_IDX:0] pflg_ctl;                           /* parity/overflow flag control */
   wire  [`STATE_IDX:0] state_nxt, state_reg;               /* machine state                */
   wire  [`TTYPE_IDX:0] tran_sel;                           /* transaction type             */
   wire   [`WREG_IDX:0] wr_addr;                            /* register write address bus   */
@@ -105,7 +103,7 @@ module y80_top (halt_tran, mem_addr_out, mem_data_out, mem_rd, mem_tran, mem_wr,
   machine  MACHINE  ( .ld_ctrl(ld_ctrl), .state_reg(state_reg), .wait_st(wait_st),
                       .clkc(clkc),
                       .ld_wait(ld_wait), .resetb(resetb),
-                      .state_nxt(state_nxt), .wait_req(wait_req) );
+                      .state_nxt(state_nxt) );
 
   /*****************************************************************************************/
   /*                                                                                       */
@@ -120,7 +118,7 @@ module y80_top (halt_tran, mem_addr_out, mem_data_out, mem_rd, mem_tran, mem_wr,
                       .ld_inst(ld_inst),
                       .ld_page(ld_page), .ld_wait(ld_wait),
                       .nflg_ctl(nflg_ctl), .output_inh(output_inh), .page_sel(page_sel),
-                      .pc_sel(pc_sel), .pflg_ctl(pflg_ctl), .rd_frst(rd_frst),
+                      .pc_sel(pc_sel), .rd_frst(rd_frst),
                       .sflg_en(sflg_en),
                       .state_nxt(state_nxt), .tran_sel(tran_sel),
                       .wr_addr(wr_addr), .wr_frst(wr_frst), .zflg_en(zflg_en),
@@ -146,7 +144,7 @@ module y80_top (halt_tran, mem_addr_out, mem_data_out, mem_rd, mem_tran, mem_wr,
                       .ex_dehl_inst(ex_dehl_inst), .hflg_ctl(hflg_ctl),
                       .ld_ctrl(ld_ctrl), .ld_inst(ld_inst), .ld_page(ld_page),
                       .nflg_ctl(nflg_ctl), .nmi_req(nmi_req), .page_sel(page_sel),
-                      .pc_sel(pc_sel), .pflg_ctl(pflg_ctl), .resetb(resetb),
+                      .pc_sel(pc_sel), .resetb(resetb),
                       .sflg_en(sflg_en), .wait_st(wait_st),
                       .wr_addr(wr_addr), .zflg_en(zflg_en) );
 
