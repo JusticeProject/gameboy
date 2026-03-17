@@ -8,12 +8,11 @@
 module extint (data_in, ftch_tran, mem_addr_out, mem_data_out, mem_rd,
                mem_tran, mem_wr, t1, addr_reg_in, clkc,
                dout_mem_reg, if_frst,
-               mem_data_in, output_inh, rd_frst,
+               mem_data_in, rd_frst,
                resetb, tran_sel, wr_frst);
 
   input         clkc;          /* main cpu clock                                           */
   input         if_frst;       /* first part of fetch cycle identifier                     */
-  input         output_inh;    /* disable cpu outputs                                      */
   input         rd_frst;       /* first part of read cycle identifier                      */
   input         resetb;        /* internal reset                                           */
   input         wr_frst;       /* first part of write cycle identifier                     */
@@ -42,7 +41,6 @@ module extint (data_in, ftch_tran, mem_addr_out, mem_data_out, mem_rd,
   reg           mem_rd;                                    /* memory read enable           */
   reg           mem_tran;                                  /* memory transaction           */
   reg           mem_wr;                                    /* memory write enable          */
-  reg           out_inh_reg;                               /* latched output inhibit       */
   reg           t1;                                        /* first clock of transaction   */
   wire     [7:0] data_in;                                   /* data input bus               */
   reg    [15:0] mem_addr_out;                              /* memory address bus           */
@@ -52,7 +50,7 @@ module extint (data_in, ftch_tran, mem_addr_out, mem_data_out, mem_rd,
   /* misc signals & buses                                                                  */
   /*                                                                                       */
   /*****************************************************************************************/
-  assign mem_data_out = (out_inh_reg) ? 8'h00 : dout_mem_reg;
+  assign mem_data_out = dout_mem_reg;
   assign ld_mem_addr  = tran_sel[`TT_IDL] || tran_sel[`TT_IF] ||
                         tran_sel[`TT_MEM] || tran_sel[`TT_STK];
 
@@ -69,14 +67,12 @@ module extint (data_in, ftch_tran, mem_addr_out, mem_data_out, mem_rd,
       ftch_tran    <= 1'b0;
       mem_addr_out <= 16'h0000;
       mem_tran     <= 1'b0;
-      out_inh_reg  <= 1'b0;
       end
     else if (|tran_sel) begin
       ftch_tran    <= tran_sel[`TT_IF];
-      if (ld_mem_addr) mem_addr_out <= (output_inh) ? 16'h0000 : addr_reg_in;
-      mem_tran     <= (tran_sel[`TT_IDL] || tran_sel[`TT_IF] || tran_sel[`TT_MEM] ||
-                       tran_sel[`TT_STK]) && !output_inh;
-      out_inh_reg  <= output_inh;
+      if (ld_mem_addr) 
+        mem_addr_out <= addr_reg_in;
+      mem_tran     <= (tran_sel[`TT_IDL] || tran_sel[`TT_IF] || tran_sel[`TT_MEM] || tran_sel[`TT_STK]);
       end
     end
 

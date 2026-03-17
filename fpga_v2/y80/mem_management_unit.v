@@ -7,7 +7,8 @@ module mem_management_unit(
     );
 
 // The 16th address line will always indicate RAM vs ROM
-localparam USABLE_ADDR_LINES = 15;
+// TODO: switch to 15 address lines
+localparam USABLE_ADDR_LINES = 3;
 localparam NUM_ADDRESSES = 2**USABLE_ADDR_LINES;
 
 // signals/registers
@@ -18,6 +19,7 @@ reg [USABLE_ADDR_LINES-1:0] addr_reg;
 reg [7:0] rom_instructions [0:NUM_ADDRESSES-1];
 
 // RAM
+// TODO: the synthesis report does not seem to infer a Block RAM
 reg [7:0] ram [0:NUM_ADDRESSES-1];
 
 // the rom.mem file needs to be added as a source

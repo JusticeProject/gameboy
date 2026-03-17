@@ -7,7 +7,7 @@
 /*******************************************************************************************/
 module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl, ex_af_pls,
                 ex_bank_pls, ex_dehl_inst, hflg_ctl, if_frst,
-                ld_inst, ld_page, nflg_ctl, output_inh,
+                ld_inst, ld_page, nflg_ctl,
                 page_sel, pc_sel, rd_frst, sflg_en, state_nxt,
                 tran_sel, wr_addr, wr_frst, zflg_en, carry_bit, inst_reg,
                 page_reg, par_bit, sign_bit, state_reg, zero_bit);
@@ -26,7 +26,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   output        if_frst;       /* ifetch first cycle                                       */
   output        ld_inst;       /* load instruction register                                */
   output        ld_page;       /* load page register                                       */
-  output        output_inh;    /* disable cpu outputs                                      */
   output        rd_frst;       /* read first cycle                                         */
   output        sflg_en;       /* sign flag control                                        */
   output        wr_frst;       /* write first cycle                                        */
@@ -57,7 +56,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
   reg           if_frst;                                   /* first clock if ifetch        */
   reg           ld_inst;                                   /* load instruction register    */
   reg           ld_page;                                   /* load page register           */
-  reg           output_inh;                                /* disable cpu outputs          */
   reg           rd_frst;                                   /* first clock of read          */
   reg           sflg_en;                                   /* sign flag control            */
   reg           wr_frst;                                   /* first clock of write         */
@@ -211,6 +209,15 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
           default:          state_nxt = `sIF1B;
           endcase
         end
+      `OF1B: begin
+        casex (inst_reg) //synopsys parallel_case
+          8'b00xxx110:      state_nxt = `sIF1A;     // LD A,n8
+          8'b11000011:      state_nxt = `sOF2A;      // JP n16
+          default:          state_nxt = `sIF1A;
+          endcase
+        end
+      `OF2A:                state_nxt = `sOF2B;
+      `OF2B:                state_nxt = `sPCA;
       `PCA:                 state_nxt = `sPCO;
       `PCO: begin
         casex ({page_reg, inst_reg}) //synopsys parallel_case
@@ -254,33 +261,6 @@ module control (add_sel, alua_sel, alub_sel, aluop_sel, cflg_en, di_ctl, do_ctl,
       `HLTB:                tran_sel = `TRAN_IDL;
       `RSTE:                tran_sel = `TRAN_IF;
       default:              tran_sel = `TRAN_RSTVAL;
-      endcase
-    end
-
-
-  /*****************************************************************************************/
-  /*                                                                                       */
-  /*  output inhibit                                                                       */
-  /*                                                                                       */
-  /*****************************************************************************************/
-  always @ (inst_reg or page_reg or state_reg) begin
-    casex (state_reg)
-      `IF1B: begin
-        casex ({page_reg, inst_reg}) //synopsys parallel_case
-          12'b1xxx01000101,
-          12'b1xxx01001101,
-          12'b000011110011,
-          12'b0001xxxxxxxx: output_inh = 1'b0;
-          default:          output_inh = 1'b1;
-          endcase
-        end
-      `PCO,
-      `HLTB: begin
-        casex ({page_reg, inst_reg})
-          default:          output_inh = 1'b0;
-          endcase
-        end
-      default:              output_inh = 1'b0;
       endcase
     end
 

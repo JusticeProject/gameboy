@@ -294,12 +294,12 @@
   /*****************************************************************************************/
   `define STATE_IDX 31
   `define sRST   32'b00000000000000000000000000000000   //reset
-  `define sDEC1  32'b00000000000000000000000000000011   //decode 1st opcode
+  `define sDEC1  32'b00000000000000000000000000000011   //decode 1st opcode        // 000000003
   `define sIF2B  32'b00000000000000000000000000000101   //fetch 2nd opcode (2)
   `define sDEC2  32'b00000000000000000000000000001001   //decode 2nd opcode
-  `define sOF1B  32'b00000000000000000000000000010001   //fetch 1st operand (2)
-  `define sOF2A  32'b00000000000000000000000000100001   //fetch 2nd operand (1)
-  `define sOF2B  32'b00000000000000000000000001000001   //fetch 2nd operand (2)
+  `define sOF1B  32'b00000000000000000000000000010001   //fetch 1st operand (2)    // 00000011
+  `define sOF2A  32'b00000000000000000000000000100001   //fetch 2nd operand (1)    // 00000021
+  `define sOF2B  32'b00000000000000000000000001000001   //fetch 2nd operand (2)    // 00000041
   `define sIF3A  32'b00000000000000000000000010000001   //fetch 3rd opcode (1)
   `define sIF3B  32'b00000000000000000000000100000001   //fetch 3rd opcode (2)
   `define sADR1  32'b00000000000000000000001000000001   //address calculate (1)
@@ -314,13 +314,13 @@
   `define sWR2B  32'b00000000000001000000000000000001   //write 2nd operand (2)
   `define sBLK1  32'b00000000000010000000000000000001   //block instruction (1)
   `define sBLK2  32'b00000000000100000000000000000001   //block instruction (2)
-  `define sPCA   32'b00000000001000000000000000000001   //PC adjust
-  `define sPCO   32'b00000000010000000000000000000001   //PC output
-  `define sIF1A  32'b00000000100000000000000000000001   //fetch 1st opcode (1)
-  `define sIF1B  32'b00000001000000000000000000000001   //fetch 1st opcode (2)
+  `define sPCA   32'b00000000001000000000000000000001   //PC adjust               // 00200001
+  `define sPCO   32'b00000000010000000000000000000001   //PC output               // 00400001
+  `define sIF1A  32'b00000000100000000000000000000001   //fetch 1st opcode (1)    // 00800001
+  `define sIF1B  32'b00000001000000000000000000000001   //fetch 1st opcode (2)    // 01000001
   `define sHLTA  32'b00001000000000000000000000000001   //halt & sleep (1)
   `define sHLTB  32'b00010000000000000000000000000001   //halt & sleep (2)
-  `define sRSTE  32'b10000000000000000000000000000001   //reset exit
+  `define sRSTE  32'b10000000000000000000000000000001   //reset exit              // 80000001
 
   `define  RST   32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0   //reset
   `define  DEC1  32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx11   //decode 1st opcode

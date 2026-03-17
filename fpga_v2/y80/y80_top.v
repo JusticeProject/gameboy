@@ -31,7 +31,6 @@ module y80_top (clkc, clearb, resetb, t1);
   wire          mem_rd;                                    /* memory read enable           */
   wire          mem_tran;                                  /* memory transaction           */
   wire          mem_wr;                                    /* memory write enable          */
-  wire          output_inh;                                /* disable cpu outputs          */
   wire          par_bit;                                   /* parity flag                  */
   wire          rd_frst;                                   /* first clock of read          */
   wire          sflg_en;                                   /* sign flag control            */
@@ -75,7 +74,7 @@ module y80_top (clkc, clearb, resetb, t1);
                       .dout_mem_reg(dout_mem_reg),
                       .if_frst(if_frst),
                       .mem_data_in(mem_data_in),
-                      .output_inh(output_inh), .rd_frst(rd_frst),
+                      .rd_frst(rd_frst),
                       .resetb(resetb), .tran_sel(tran_sel), 
                       .wr_frst(wr_frst) );
   
@@ -109,7 +108,7 @@ module y80_top (clkc, clearb, resetb, t1);
                       .if_frst(if_frst),
                       .ld_inst(ld_inst),
                       .ld_page(ld_page),
-                      .nflg_ctl(nflg_ctl), .output_inh(output_inh), .page_sel(page_sel),
+                      .nflg_ctl(nflg_ctl), .page_sel(page_sel),
                       .pc_sel(pc_sel), .rd_frst(rd_frst),
                       .sflg_en(sflg_en),
                       .state_nxt(state_nxt), .tran_sel(tran_sel),
