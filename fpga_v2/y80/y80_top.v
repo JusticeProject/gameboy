@@ -81,10 +81,11 @@ module y80_top (clkc, clearb, resetb, t1);
   
   /*****************************************************************************************/
   /*                                                                                       */
-  /* ROM (instructions)                                                                    */
+  /* ROM (instructions) and RAM                                                            */
   /*                                                                                       */
   /*****************************************************************************************/
-  rom ROM_UNIT (.clkc(clkc), .mem_addr_in(mem_addr_out), .mem_data_out(mem_data_in));
+  mem_management_unit MMU_INSTANCE (.clkc(clkc), .mem_wr(mem_wr), .mem_addr_in(mem_addr_out), 
+                                    .mem_data_in(mem_data_out), .mem_data_out(mem_data_in));
 
   /*****************************************************************************************/
   /*                                                                                       */
