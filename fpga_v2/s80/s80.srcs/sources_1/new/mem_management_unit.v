@@ -18,14 +18,13 @@ localparam NUM_ADDRESSES = 2**USABLE_ADDR_LINES;
 //*************************************************************************************************
 
 // signals/registers
-reg is_ram;
 reg [USABLE_ADDR_LINES-1:0] addr_reg;
 
 // ROM data
 reg [7:0] rom_instructions [0:NUM_ADDRESSES-1];
 
 // RAM
-// TODO: sometimes have issues with it not inferring a BRAM
+// TODO: sometimes have issues with it not inferring a BRAM. Don't just look at the Report, also check the Log.
 reg [7:0] ram [0:NUM_ADDRESSES-1];
 
 // the rom.mem file needs to be added as a source
@@ -35,6 +34,8 @@ begin
 end
 
 //*************************************************************************************************
+//*************************************************************************************************
+//*************************************************************************************************
 
 // clock
 always @(posedge clk)
@@ -43,16 +44,10 @@ begin
         ram[mem_addr[USABLE_ADDR_LINES-1:0]] <= mem_data_wr;
     
     addr_reg <= mem_addr[USABLE_ADDR_LINES-1:0];
-    /*if (mem_addr[15])
-        if (mem_wr_enable)
-            ram[mem_addr[USABLE_ADDR_LINES-1:0]] <= mem_data_wr;
-        else
-            mem_data_rd <= ram[mem_addr[USABLE_ADDR_LINES-1:0]];
-    else
-        mem_data_rd <= rom_instructions[mem_addr[USABLE_ADDR_LINES-1:0]];*/
-        
 end
 
+//*************************************************************************************************
+//*************************************************************************************************
 //*************************************************************************************************
 
 // output logic
