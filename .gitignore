@@ -6,4 +6,6 @@ fpga_v2/s80/s80.cache/*
 fpga_v2/s80/s80.hw/*
 fpga_v2/s80/s80.ip_user_files/*
 fpga_v2/s80/s80.sim/*
+fpga_v2/s80/s80.runs/*
+fpga_v2/s80/s80.srcs/utils_1/*
 *.xpr
