@@ -11,7 +11,7 @@ wire ld_instr_enable;
 wire inc_pc_enable;
 
 // status signals
-wire instr_reg;
+wire [7:0] instr_reg;
 
 // memory signals
 wire mem_wr_enable;

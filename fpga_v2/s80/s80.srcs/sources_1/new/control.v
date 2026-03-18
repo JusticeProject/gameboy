@@ -10,7 +10,7 @@ module control(
     output reg inc_pc_enable,
     
     // status signals
-    input wire instr_reg
+    input wire [7:0] instr_reg
 );
 
 //*************************************************************************************************
@@ -35,7 +35,7 @@ end
 always @*
 begin
     (* parallel_case *)
-    case (state_reg)
+    casex (state_reg)
         `RESET_EXIT:
             state_next = `sINSTR_FETCH_1A;
         `INSTR_FETCH_1A:
@@ -54,5 +54,47 @@ end
 //*************************************************************************************************
 
 // output logic, control signals
+
+//*************************************************************************************************
+
+// mem_addr control signals
+always @*
+begin
+    (* parallel_case *)
+    casex (state_reg)
+        `INSTR_FETCH_1A:
+            pc_out_enable = 1'b1; // send the pc out onto the mem_addr bus
+        default:
+            pc_out_enable = 1'b0;
+    endcase
+end
+
+//*************************************************************************************************
+
+// load instruction register control signal
+always @*
+begin
+    (* parallel_case *)
+    casex (state_reg)
+        `INSTR_FETCH_1B:
+            ld_instr_enable = 1'b1;
+        default:
+            ld_instr_enable = 1'b0;
+    endcase
+end
+
+//*************************************************************************************************
+
+// increment program counter
+always @*
+begin
+    (* parallel_case *)
+    casex (state_reg)
+        `EXEC:
+            inc_pc_enable = 1'b1;
+        default:
+            inc_pc_enable = 1'b0;
+    endcase
+end
 
 endmodule

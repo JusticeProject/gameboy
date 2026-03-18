@@ -25,6 +25,7 @@ reg [USABLE_ADDR_LINES-1:0] addr_reg;
 reg [7:0] rom_instructions [0:NUM_ADDRESSES-1];
 
 // RAM
+// TODO: sometimes have issues with it not inferring a BRAM
 reg [7:0] ram [0:NUM_ADDRESSES-1];
 
 // the rom.mem file needs to be added as a source
@@ -38,23 +39,23 @@ end
 // clock
 always @(posedge clk)
 begin
-    if (mem_addr[15])
-        begin
-            is_ram <= 1'b1;
-            if (mem_wr_enable)
-                ram[mem_addr[USABLE_ADDR_LINES-1:0]] <= mem_data_wr;
-        end
-    else
-        begin
-            is_ram <= 1'b0;
-        end
+    if ((mem_wr_enable) && (mem_addr[15]))
+        ram[mem_addr[USABLE_ADDR_LINES-1:0]] <= mem_data_wr;
     
     addr_reg <= mem_addr[USABLE_ADDR_LINES-1:0];
+    /*if (mem_addr[15])
+        if (mem_wr_enable)
+            ram[mem_addr[USABLE_ADDR_LINES-1:0]] <= mem_data_wr;
+        else
+            mem_data_rd <= ram[mem_addr[USABLE_ADDR_LINES-1:0]];
+    else
+        mem_data_rd <= rom_instructions[mem_addr[USABLE_ADDR_LINES-1:0]];*/
+        
 end
 
 //*************************************************************************************************
 
 // output logic
-assign mem_data_rd = (is_ram) ? ram[addr_reg] : rom_instructions[addr_reg];
+assign mem_data_rd = (mem_addr[15]) ? ram[addr_reg] : rom_instructions[addr_reg];
 
 endmodule
