@@ -2,3 +2,8 @@ pico/build/*
 pico/.vscode/*
 *.o
 *.gb
+fpga_v2/s80/s80.cache/*
+fpga_v2/s80/s80.hw/*
+fpga_v2/s80/s80.ip_user_files/*
+fpga_v2/s80/s80.sim/*
+*.xpr
