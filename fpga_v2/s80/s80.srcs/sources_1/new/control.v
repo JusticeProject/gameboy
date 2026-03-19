@@ -148,7 +148,7 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1B:
+        `INSTR_FETCH_1A:
             alu_a_mux_sel = `ALU_A_PC;
         `DECODE_1:
             (* parallel_case *)
@@ -170,7 +170,7 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1B:
+        `INSTR_FETCH_1A:
             alu_b_mux_sel = `ALU_B_ONE_LOW;
         `DECODE_1:
             (* parallel_case *)
@@ -192,7 +192,7 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1B:
+        `INSTR_FETCH_1A:
             alu_op_sel = `ALU_ADD;
         `DECODE_1:
             (* parallel_case *)
@@ -247,7 +247,7 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1B:
+        `INSTR_FETCH_1A:
             ld_reg_enable = `LD_REG_PC;
         `DECODE_1:
             (* parallel_case *)
