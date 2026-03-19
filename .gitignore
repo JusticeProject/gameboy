@@ -9,3 +9,4 @@ fpga_v2/s80/s80.sim/*
 fpga_v2/s80/s80.runs/*
 fpga_v2/s80/s80.srcs/utils_1/*
 *.xpr
+*.wcfg
