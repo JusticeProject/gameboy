@@ -7,12 +7,6 @@
 `define sEXEC            32'b00000000000000000000000000000101   // execute                 // 00000005
 `define sREAD_RAM_1A     32'b00000000000000000000100000000001   // read byte from RAM (1)  // 00000801
 `define sWRITE_RAM_1A    32'b00000000000000000010000000000001   // write byte to RAM (1)   // 00002001
-
-
-
-
-
-
 `define sINSTR_FETCH_1A  32'b00000000100000000000000000000001   // fetch 1st opcode (1)    // 00800001
 `define sINSTR_FETCH_1B  32'b00000001000000000000000000000001   // fetch 1st opcode (2)    // 01000001
 `define sRESET_EXIT      32'b10000000000000000000000000000001   // reset exit              // 80000001
@@ -23,17 +17,54 @@
 `define  EXEC            32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1x1   // execute
 `define  READ_RAM_1A     32'bxxxxxxxxxxxxxxxxxxxx1xxxxxxxxxx1   // read byte from RAM (1)
 `define  WRITE_RAM_1A    32'bxxxxxxxxxxxxxxxxxx1xxxxxxxxxxxx1   // write byte to RAM (1)
-
-
-
-
 `define  INSTR_FETCH_1A  32'bxxxxxxxx1xxxxxxxxxxxxxxxxxxxxxx1   // fetch 1st opcode (1)
 `define  INSTR_FETCH_1B  32'bxxxxxxx1xxxxxxxxxxxxxxxxxxxxxxx1   // fetch 1st opcode (2)
 `define  RESET_EXIT      32'b1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1   // reset exit
 
+//*************************************************************************************************
 
 // data input control
 `define DIN_NONE      2'b00            // No load
 `define DIN_DIN0      2'b01            // Load din0
 `define DIN_DIN1      2'b10            // Load din1
 `define DIN_BOTH      2'b11            // Load both din0 and din1
+
+//*************************************************************************************************
+
+// ALU A Mux selector
+`define ALU_A_IDX 3
+`define ALU_A_A           4'h0
+`define ALU_A_HL          4'h1
+`define ALU_A_DIN         4'h2
+`define ALU_A_PC          4'h4
+
+// ALU B Mux selector
+`define ALU_B_IDX 3
+`define ALU_B_ZERO        4'h0
+`define ALU_B_ONE_LOW     4'h1
+`define ALU_B_ONE_HIGH    4'h2
+
+//*************************************************************************************************
+
+// ALU Math operations
+`define ALU_OP_IDX 3
+`define ALU_A_PASS       4'h0
+`define ALU_B_PASS       4'h1
+`define ALU_ADD          4'h2
+
+//*************************************************************************************************
+
+// Load register control
+// TODO: could move PC to have its own signal
+`define LD_REG_IDX 3
+`define LD_REG_NONE   4'h0
+`define LD_REG_A      4'h1
+`define LD_REG_HL     4'h2
+`define LD_REG_PC     4'h4
+
+`define LD_A          1
+`define LD_HL         2
+`define LD_PC         3
+
+//*************************************************************************************************
+

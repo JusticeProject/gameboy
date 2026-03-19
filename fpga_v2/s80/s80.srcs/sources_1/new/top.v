@@ -14,12 +14,12 @@ wire mem_wr_enable;
 // load control signals
 wire ld_instr_enable;
 wire [1:0] ld_din_enable;
-// TODO: combine these
-wire ld_a_enable;
-wire ld_hl_enable;
+wire [`LD_REG_IDX:0] ld_reg_enable;
 
-// misc control signals
-wire inc_pc_enable;
+// ALU control signals
+wire [`ALU_A_IDX:0] alu_a_mux_sel;
+wire [`ALU_B_IDX:0] alu_b_mux_sel;
+wire [`ALU_OP_IDX:0] alu_op_sel;
 
 // status signals
 wire [7:0] instr_reg;
@@ -34,15 +34,15 @@ wire [7:0] mem_data_rd;
 // instantiate the control unit
 control CONTROL_UNIT (.clk(clk), .resetb(resetb),
                       .pc_out_enable(pc_out_enable), .hl_out_enable(hl_out_enable), .a_out_enable(a_out_enable), .mem_wr_enable(mem_wr_enable), 
-                      .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_a_enable(ld_a_enable), .ld_hl_enable(ld_hl_enable),
-                      .inc_pc_enable(inc_pc_enable), 
+                      .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
+                      .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
                       .instr_reg(instr_reg));
 
 // instantiate the datapath unit
 datapath DATAPATH_UNIT (.clk(clk), .resetb(resetb), 
                         .pc_out_enable(pc_out_enable), .hl_out_enable(hl_out_enable), .a_out_enable(a_out_enable),
-                        .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_a_enable(ld_a_enable), .ld_hl_enable(ld_hl_enable),
-                        .inc_pc_enable(inc_pc_enable),
+                        .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
+                        .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
                          .instr_reg(instr_reg),
                         .mem_data_rd(mem_data_rd), .mem_addr(mem_addr), .mem_data_wr(mem_data_wr));
 

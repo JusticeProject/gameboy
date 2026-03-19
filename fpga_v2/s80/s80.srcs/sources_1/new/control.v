@@ -13,12 +13,12 @@ module control(
     // load control signals
     output reg ld_instr_enable,
     output reg [1:0] ld_din_enable,
-    // TODO: combine these
-    output reg ld_a_enable,
-    output reg ld_hl_enable,
+    output reg [`LD_REG_IDX:0] ld_reg_enable,
     
-    // misc control signals
-    output reg inc_pc_enable,
+    // ALU control signals
+    output reg [`ALU_A_IDX:0] alu_a_mux_sel,
+    output reg [`ALU_B_IDX:0] alu_b_mux_sel,
+    output reg [`ALU_OP_IDX:0] alu_op_sel,
     
     // status signals
     input wire [7:0] instr_reg
@@ -60,8 +60,8 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b11110011,      // TODO: disable interrupts
-                8'b00000000:
+                8'b00000000,
+                8'b00111100:              // inc a
                     state_next = `sEXEC;
                 default:
                     state_next = `sRESET_EXIT;
@@ -141,7 +141,18 @@ end
 //*************************************************************************************************
 //*************************************************************************************************
 
-// load control signals, load instruction register
+// control signals for ALU A mux
+
+
+// control signals for ALU B mux
+
+// control signals for ALU operation
+
+//*************************************************************************************************
+//*************************************************************************************************
+//*************************************************************************************************
+
+// control signals for load instruction register
 always @*
 begin
     (* parallel_case *)
@@ -155,7 +166,7 @@ end
 
 //*************************************************************************************************
 
-// load control signals, din0 and din1
+// control signals for din0 and din1
 always @*
 begin
     (* parallel_case *)
@@ -169,34 +180,34 @@ end
 
 //*************************************************************************************************
 
-// load control signals for registers
+// control signals for load registers
 always @*
 begin
     (* parallel_case *)
     casex (state_reg)
+        `INSTR_FETCH_1B:
+            ld_reg_enable = `LD_REG_PC;
+        `DECODE_1:
+            (* parallel_case *)
+            case (instr_reg)
+                8'b00111100:        // inc a
+                    ld_reg_enable = `LD_REG_A;
+                default:
+                    ld_reg_enable = `LD_REG_NONE;
+            endcase
         `EXEC:
             (* parallel_case *)
             casex (instr_reg)
                 8'b00xxx110:     // ld a,n8
-                    begin
-                        ld_a_enable = 1'b1;
-                        ld_hl_enable = 1'b0;
-                    end
+                    ld_reg_enable = `LD_REG_A;
                 8'b00100001:     // ld hl,n16
-                    begin
-                        ld_a_enable = 1'b0;
-                        ld_hl_enable = 1'b1;
-                    end
+                    ld_reg_enable = `LD_REG_HL;
                 default:
-                    begin
-                        ld_a_enable = 1'b0;
-                        ld_hl_enable = 1'b0;
-                    end
+                    ld_reg_enable = `LD_REG_NONE;
             endcase
         default:
             begin
-                ld_a_enable = 1'b0;
-                ld_hl_enable = 1'b0;
+                ld_reg_enable = `LD_REG_NONE;
             end
     endcase
 end
@@ -205,17 +216,6 @@ end
 //*************************************************************************************************
 //*************************************************************************************************
 
-// misc control signals,
-// increment program counter
-always @*
-begin
-    (* parallel_case *)
-    casex (state_reg)
-        `EXEC:
-            inc_pc_enable = 1'b1;
-        default:
-            inc_pc_enable = 1'b0;
-    endcase
-end
+
 
 endmodule
