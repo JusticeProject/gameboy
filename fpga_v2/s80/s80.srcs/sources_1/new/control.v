@@ -60,13 +60,13 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00000000,
-                8'b00111100:              // inc a
-                    state_next = `sEXEC;
+                8'b00000000,              // nop
+                8'b00xxx100:              // inc r8
+                    state_next = `sIDLE;
                 default:
                     state_next = `sRESET_EXIT;
             endcase
-        `EXEC:
+        `IDLE:
             state_next = `sINSTR_FETCH_1A;
         default:
             state_next = `sRESET_EXIT;
@@ -82,9 +82,11 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1A:
+        `RESET_EXIT,
+        `IDLE:
             begin
-                // send the pc out onto the mem_addr bus
+                // send the pc out onto the mem_addr bus on the NEXT clock cycle
+                // TODO: do I want to combine these signals into a bus? Are there other registers that go out to the mem_addr bus?
                 pc_out_enable = 1'b1;
                 hl_out_enable = 1'b0;
             end
@@ -142,11 +144,70 @@ end
 //*************************************************************************************************
 
 // control signals for ALU A mux
+always @*
+begin
+    (* parallel_case *)
+    casex (state_reg)
+        `INSTR_FETCH_1B:
+            alu_a_mux_sel = `ALU_A_PC;
+        `DECODE_1:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b0011110x:        // inc a or dec a
+                    alu_a_mux_sel = `ALU_A_A;
+                default:
+                    alu_a_mux_sel = `ALU_A_NONE;
+            endcase
+        default:
+            alu_a_mux_sel = `ALU_A_NONE;
+    endcase
+end
 
+//*************************************************************************************************
 
 // control signals for ALU B mux
+always @*
+begin
+    (* parallel_case *)
+    casex (state_reg)
+        `INSTR_FETCH_1B:
+            alu_b_mux_sel = `ALU_B_ONE_LOW;
+        `DECODE_1:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b0011110x:       // inc a or dec a
+                    alu_b_mux_sel = `ALU_B_ONE_HIGH;
+                default:
+                    alu_b_mux_sel = `ALU_B_ZERO;
+            endcase
+        default:
+            alu_b_mux_sel = `ALU_B_ZERO;
+    endcase
+end
+
+//*************************************************************************************************
 
 // control signals for ALU operation
+always @*
+begin
+    (* parallel_case *)
+    casex (state_reg)
+        `INSTR_FETCH_1B:
+            alu_op_sel = `ALU_ADD;
+        `DECODE_1:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00xxx100:
+                    alu_op_sel = `ALU_ADD;
+                8'b00xxx101:
+                    alu_op_sel = `ALU_SUB;
+                default:
+                    alu_op_sel = `ALU_A_PASS;
+            endcase
+        default:
+            alu_op_sel = `ALU_A_PASS;
+    endcase
+end
 
 //*************************************************************************************************
 //*************************************************************************************************
@@ -171,6 +232,7 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
+        // TODO: for ld a,[hl] should I load [hl] into both din0 and din1, followed by moving alu_out_bus to a?
         `READ_RAM_1A:
             ld_din_enable = `DIN_DIN1;
         default:
@@ -189,13 +251,13 @@ begin
             ld_reg_enable = `LD_REG_PC;
         `DECODE_1:
             (* parallel_case *)
-            case (instr_reg)
-                8'b00111100:        // inc a
+            casex (instr_reg)
+                8'b0011110x:        // inc a or dec a
                     ld_reg_enable = `LD_REG_A;
                 default:
                     ld_reg_enable = `LD_REG_NONE;
             endcase
-        `EXEC:
+        /*`DECODE2 ??:
             (* parallel_case *)
             casex (instr_reg)
                 8'b00xxx110:     // ld a,n8
@@ -204,7 +266,7 @@ begin
                     ld_reg_enable = `LD_REG_HL;
                 default:
                     ld_reg_enable = `LD_REG_NONE;
-            endcase
+            endcase*/
         default:
             begin
                 ld_reg_enable = `LD_REG_NONE;

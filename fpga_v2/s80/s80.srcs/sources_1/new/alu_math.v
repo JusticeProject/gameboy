@@ -21,6 +21,8 @@ begin
             alu_math_out = alu_b_in;
         `ALU_ADD:
             alu_math_out = alu_a_in + alu_b_in;
+        `ALU_SUB:
+            alu_math_out = alu_a_in - alu_b_in;
         default:
             alu_math_out = 16'h0000;
     endcase
