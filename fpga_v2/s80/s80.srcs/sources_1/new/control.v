@@ -61,12 +61,13 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b00000000,              // nop
-                8'b00xxx100:              // inc r8
-                    state_next = `sIDLE;
+                8'b00xxx100,              // inc r8 or inc [hl]
+                8'b00xxx101:              // dec r8 or dec [hl]
+                    state_next = `sIDLE_1;
                 default:
                     state_next = `sRESET_EXIT;
             endcase
-        `IDLE:
+        `IDLE_1:
             state_next = `sINSTR_FETCH_1A;
         default:
             state_next = `sRESET_EXIT;
@@ -80,27 +81,23 @@ end
 // output control signals for mem_addr
 always @*
 begin
+    // TODO: do I want to combine these signals into a bus? Are there other registers that go out to the mem_addr bus?
+    pc_out_enable = 1'b0; // by default don't put anything onto the mem_addr bus
+    hl_out_enable = 1'b0;
+                
     (* parallel_case *)
     casex (state_reg)
         `RESET_EXIT,
-        `IDLE:
+        `IDLE_1:
             begin
                 // send the pc out onto the mem_addr bus on the NEXT clock cycle
-                // TODO: do I want to combine these signals into a bus? Are there other registers that go out to the mem_addr bus?
                 pc_out_enable = 1'b1;
-                hl_out_enable = 1'b0;
             end
+        // TODO: should this be in the DECODE state?
         `WRITE_RAM_1A:
             begin
                 // send the hl register onto the mem_addr bus
-                pc_out_enable = 1'b0;
                 hl_out_enable = 1'b1;
-            end
-        default:
-            begin
-                // don't put anything onto the mem_addr bus
-                pc_out_enable = 1'b0;
-                hl_out_enable = 1'b0;
             end
     endcase
 end
@@ -110,6 +107,8 @@ end
 // output control signals for data out
 always @*
 begin
+    // TODO: will need a bus for all of the signals
+    
     (* parallel_case *)
     casex (state_reg)
         `WRITE_RAM_1A:
