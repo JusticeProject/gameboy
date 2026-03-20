@@ -3,22 +3,30 @@
 
 // State machine states, used for next state transition
 `define sRESET           32'b00000000000000000000000000000000   // reset
-`define sDECODE_1        32'b00000000000000000000000000000011   // decode 1st opcode       // 00000003
-`define sIDLE_1          32'b00000000000000000000000000000101   // idle (1)                // 00000005
-`define sREAD_RAM_1A     32'b00000000000000000000100000000001   // read byte from RAM (1)  // 00000801
-`define sWRITE_RAM_1A    32'b00000000000000000010000000000001   // write byte to RAM (1)   // 00002001
-`define sINSTR_FETCH_1A  32'b00000000100000000000000000000001   // fetch 1st opcode (1)    // 00800001
-`define sINSTR_FETCH_1B  32'b00000001000000000000000000000001   // fetch 1st opcode (2)    // 01000001
+`define sINSTR_FETCH_1A  32'b00000000000000000000000000000011   // fetch 1st instr (A)     // 00000003
+`define sINSTR_FETCH_1B  32'b00000000000000000000000000000101   // fetch 1st instr (B)     // 00000005
+`define sDECODE_1        32'b00000000000000000000000000001001   // decode 1st byte         // 00000009
+`define sIDLE_1          32'b00000000000000000000000000010001   // idle (1)                // 00000011
+`define sINSTR_FETCH_2A  32'b00000000000000000000000000100001   // fetch 2nd instr (A)     // 00000021
+`define sINSTR_FETCH_2B  32'b00000000000000000000000001000001   // fetch 2nd instr (B)     // 00000041
+`define sDECODE_2        32'b00000000000000000000000010000001   // decode 2nd byte         // 00000081
+`define sIDLE_2          32'b00000000000000000000000100000001   // idle (2)                // 00000101
+`define sREAD_RAM_1A     32'b00000000000000000000100000000001   // read byte from RAM (A)  // 00000801
+`define sWRITE_RAM_1A    32'b00000000000000000010000000000001   // write byte to RAM (A)   // 00002001
 `define sRESET_EXIT      32'b10000000000000000000000000000001   // reset exit              // 80000001
 
 // State machine states, used for determining current state
 `define  RESET           32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0   // reset
-`define  DECODE_1        32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx11   // decode 1st opcode
-`define  IDLE_1          32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1x1   // idle (1)
-`define  READ_RAM_1A     32'bxxxxxxxxxxxxxxxxxxxx1xxxxxxxxxx1   // read byte from RAM (1)
-`define  WRITE_RAM_1A    32'bxxxxxxxxxxxxxxxxxx1xxxxxxxxxxxx1   // write byte to RAM (1)
-`define  INSTR_FETCH_1A  32'bxxxxxxxx1xxxxxxxxxxxxxxxxxxxxxx1   // fetch 1st opcode (1)
-`define  INSTR_FETCH_1B  32'bxxxxxxx1xxxxxxxxxxxxxxxxxxxxxxx1   // fetch 1st opcode (2)
+`define  INSTR_FETCH_1A  32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx11   // fetch 1st instr (A)
+`define  INSTR_FETCH_1B  32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1x1   // fetch 1st instr (B)
+`define  DECODE_1        32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxx1xx1   // decode 1st byte
+`define  IDLE_1          32'bxxxxxxxxxxxxxxxxxxxxxxxxxxx1xxx1   // idle (1)
+`define  INSTR_FETCH_2A  32'bxxxxxxxxxxxxxxxxxxxxxxxxxx1xxxx1   // fetch 2nd instr (A)
+`define  INSTR_FETCH_2B  32'bxxxxxxxxxxxxxxxxxxxxxxxxx1xxxxx1   // fetch 2nd instr (B)
+`define  DECODE_2        32'bxxxxxxxxxxxxxxxxxxxxxxxx1xxxxxx1   // decode 2nd byte
+`define  IDLE_2          32'bxxxxxxxxxxxxxxxxxxxxxxx1xxxxxxx1   // idle (2)
+`define  READ_RAM_1A     32'bxxxxxxxxxxxxxxxxxxxx1xxxxxxxxxx1   // read byte from RAM (A)
+`define  WRITE_RAM_1A    32'bxxxxxxxxxxxxxxxxxx1xxxxxxxxxxxx1   // write byte to RAM (A)
 `define  RESET_EXIT      32'b1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1   // reset exit
 
 //*************************************************************************************************

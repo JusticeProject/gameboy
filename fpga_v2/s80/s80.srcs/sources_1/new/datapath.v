@@ -100,10 +100,13 @@ begin
             din0 <= 8'h00;
             din1 <= 8'h00;
         end
-    else if (ld_din_enable[0])
-        din0 <= mem_data_rd;
-    else if (ld_din_enable[1])
-        din1 <= mem_data_rd;
+    else
+        begin
+            if (ld_din_enable[0])
+                din0 <= mem_data_rd;
+            if (ld_din_enable[1])
+                din1 <= mem_data_rd;
+        end
 end
 
 //*************************************************************************************************

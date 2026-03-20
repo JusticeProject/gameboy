@@ -59,16 +59,35 @@ begin
             state_next = `sDECODE_1;
         `DECODE_1:
             (* parallel_case *)
-            casex (instr_reg)
+            casex (instr_reg)          // TODO: is this case necessary? should I always go to IDLE_1?
                 8'b00000000,              // nop
                 8'b00xxx100,              // inc r8 or inc [hl]
-                8'b00xxx101:              // dec r8 or dec [hl]
+                8'b00xxx101,              // dec r8 or dec [hl]
+                8'b00xxx110:              // ld r,n8 or ld [hl],n8
                     state_next = `sIDLE_1;
                 default:
                     state_next = `sRESET_EXIT;
             endcase
         `IDLE_1:
-            state_next = `sINSTR_FETCH_1A;
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00xxx110:              // ld r,n8 or ld [hl],n8
+                    state_next = `sINSTR_FETCH_2A;
+                default:
+                    state_next = `sINSTR_FETCH_1A;
+            endcase
+        `INSTR_FETCH_2A:
+            state_next = `sINSTR_FETCH_2B;
+        `INSTR_FETCH_2B:
+            state_next = `sDECODE_2;
+        `DECODE_2:
+            state_next = `sIDLE_2;
+        `IDLE_2:
+            (* parallel_case *)
+            casex (instr_reg)
+                default:
+                    state_next = `sINSTR_FETCH_1A;
+            endcase
         default:
             state_next = `sRESET_EXIT;
     endcase
@@ -88,7 +107,8 @@ begin
     (* parallel_case *)
     casex (state_reg)
         `RESET_EXIT,
-        `IDLE_1:
+        `IDLE_1,
+        `IDLE_2:
             begin
                 // send the pc out onto the mem_addr bus on the NEXT clock cycle
                 pc_out_enable = 1'b1;
@@ -147,13 +167,22 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1A:
-            alu_a_mux_sel = `ALU_A_PC;
+        `INSTR_FETCH_1A,
+        `INSTR_FETCH_2A:
+            alu_a_mux_sel = `ALU_A_PC; // increment pc
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
                 8'b0011110x:        // inc a or dec a
                     alu_a_mux_sel = `ALU_A_A;
+                default:
+                    alu_a_mux_sel = `ALU_A_NONE;
+            endcase
+        `DECODE_2:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00xxx110:                  // ld r,n8, TODO: what if it's ld [hl],n8?
+                    alu_a_mux_sel = `ALU_A_DIN;
                 default:
                     alu_a_mux_sel = `ALU_A_NONE;
             endcase
@@ -169,8 +198,9 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1A:
-            alu_b_mux_sel = `ALU_B_ONE_LOW;
+        `INSTR_FETCH_1A,
+        `INSTR_FETCH_2A:
+            alu_b_mux_sel = `ALU_B_ONE_LOW; // increment pc
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
@@ -191,8 +221,9 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1A:
-            alu_op_sel = `ALU_ADD;
+        `INSTR_FETCH_1A,
+        `INSTR_FETCH_2A:
+            alu_op_sel = `ALU_ADD; // increment pc
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
@@ -200,6 +231,14 @@ begin
                     alu_op_sel = `ALU_ADD;
                 8'b00xxx101:
                     alu_op_sel = `ALU_SUB;
+                default:
+                    alu_op_sel = `ALU_A_PASS;
+            endcase
+        `DECODE_2:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00xxx110:                   // ld r,n8, TODO: what if it's ld [hl],n8?
+                    alu_op_sel = `ALU_A_PASS;
                 default:
                     alu_op_sel = `ALU_A_PASS;
             endcase
@@ -231,6 +270,14 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
+        `INSTR_FETCH_2B:
+            (* parallel_case *)
+            casex (instr_reg)
+                    8'b00xxx110:                   // ld r,n8, TODO: what if it's ld [hl],n8?
+                    ld_din_enable = `DIN_BOTH;
+                default:
+                    ld_din_enable = `DIN_NONE;
+            endcase
         // TODO: for ld a,[hl] should I load [hl] into both din0 and din1, followed by moving alu_out_bus to a?
         `READ_RAM_1A:
             ld_din_enable = `DIN_DIN1;
@@ -246,8 +293,9 @@ always @*
 begin
     (* parallel_case *)
     casex (state_reg)
-        `INSTR_FETCH_1A:
-            ld_reg_enable = `LD_REG_PC;
+        `INSTR_FETCH_1A,
+        `INSTR_FETCH_2A:
+            ld_reg_enable = `LD_REG_PC;  // increment pc
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
@@ -256,16 +304,16 @@ begin
                 default:
                     ld_reg_enable = `LD_REG_NONE;
             endcase
-        /*`DECODE2 ??:
+        `DECODE_2:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00xxx110:     // ld a,n8
+                8'b00111110:     // ld a,n8
                     ld_reg_enable = `LD_REG_A;
-                8'b00100001:     // ld hl,n16
-                    ld_reg_enable = `LD_REG_HL;
+                //8'b00100001:     // ld hl,n16
+                //    ld_reg_enable = `LD_REG_HL;
                 default:
                     ld_reg_enable = `LD_REG_NONE;
-            endcase*/
+            endcase
         default:
             begin
                 ld_reg_enable = `LD_REG_NONE;
