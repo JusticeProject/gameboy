@@ -34,7 +34,7 @@
 `define sIDLE_4          32'b00000000010000000000000000000001   // idle (4)                // 00400001
 `define sIDLE_5          32'b00000000100000000000000000000001   // idle (5)                // 00800001
 
-`define sDONE            32'b01000000000000000000000000000001   // done with instruction   // 04000000
+`define sDONE            32'b01000000000000000000000000000001   // done with instruction   // 04000001
 
 `define sRESET_EXIT      32'b10000000000000000000000000000001   // reset exit              // 80000001
 

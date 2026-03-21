@@ -61,13 +61,20 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b00xxx110,              // ld r8,n8 or ld [hl],n8
-                8'b00011000:              // jr s8
+                8'b00011000,              // jr s8
+                8'b01110111:              // ld [hl],a
                     state_next = `sIDLE_1;
                 default:
                     state_next = `sDONE;
             endcase
         `IDLE_1:
-             state_next = `sINSTR_FETCH_2A;
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b01110111:            // ld [hl],a
+                    state_next = `sEXEC_1A;
+                default:
+                    state_next = `sINSTR_FETCH_2A;
+            endcase
         `INSTR_FETCH_2A:
             state_next = `sINSTR_FETCH_2B;
         `INSTR_FETCH_2B:
@@ -129,9 +136,7 @@ begin
                 // send the pc out onto the mem_addr bus on the NEXT clock cycle
                 pc_out_enable = 1'b1;
             end
-        // TODO:
         `EXEC_1A:
-            // TODO:
             (* parallel_case *)
             casex (instr_reg)
                 8'b01110111:                 // ld [hl],a
@@ -147,20 +152,16 @@ end
 always @*
 begin
     // TODO: will need a bus for all of the signals
+    a_out_enable = 1'b0; // set the default
     
     (* parallel_case *)
     casex (state_reg)
-        // TODO:
-        `EXEC_1B:
+        `EXEC_1A:
             (* parallel_case *)
             case (instr_reg)
                 8'b01110111:                           // ld [hl], a
                     a_out_enable = 1'b1;
-                default:
-                    a_out_enable = 1'b0;
             endcase
-        default:
-            a_out_enable = 1'b0;
     endcase
 end
 
@@ -346,7 +347,7 @@ begin
             casex (instr_reg)
                 8'b00100110:     // ld h,n8
                     ld_reg_enable = `LD_REG_H;
-                8'bb00101110:    // ld l,n8
+                8'b00101110:    // ld l,n8
                     ld_reg_enable = `LD_REG_L;
                 8'b00111110:     // ld a,n8
                     ld_reg_enable = `LD_REG_A;

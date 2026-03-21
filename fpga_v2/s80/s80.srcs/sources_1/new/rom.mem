@@ -3,6 +3,7 @@
 26 80       // ld h,80
 3E 03       // ld a,3
 3D          // dec a
+77          // ld [hl],a
 00          // nop
 3C          // inc a
 18 FD       // jr -3
