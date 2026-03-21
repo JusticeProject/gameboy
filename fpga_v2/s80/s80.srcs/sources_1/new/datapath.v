@@ -42,7 +42,8 @@ reg [15:0] hl_reg;
 
 // control signals for loading the registers
 wire ld_a_enable;
-wire ld_hl_enable;
+wire ld_h_enable;
+wire ld_l_enable;
 wire ld_pc_enable;
 
 reg [7:0] din0, din1;
@@ -112,7 +113,8 @@ end
 //*************************************************************************************************
 
 assign ld_a_enable = ld_reg_enable[`LD_A];
-assign ld_hl_enable = ld_reg_enable[`LD_HL];
+assign ld_h_enable = ld_reg_enable[`LD_H];
+assign ld_l_enable = ld_reg_enable[`LD_L];
 assign ld_pc_enable = ld_reg_enable[`LD_PC];
 
 //*************************************************************************************************
@@ -129,8 +131,10 @@ begin
         begin
             if (ld_a_enable)
                 a_reg <= alu_out_bus[15:8];
-            if (ld_hl_enable)
-                hl_reg <= alu_out_bus;
+            if (ld_h_enable)
+                hl_reg[15:8] <= alu_out_bus[15:8];
+            if (ld_l_enable)
+                hl_reg[7:0] <= alu_out_bus[7:0];
         end
 end
 

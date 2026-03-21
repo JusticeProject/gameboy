@@ -60,7 +60,7 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00111110,              // ld a,n8
+                8'b00xxx110,              // ld r8,n8 or ld [hl],n8
                 8'b00011000:              // jr s8
                     state_next = `sIDLE_1;
                 default:
@@ -206,6 +206,8 @@ begin
         `DECODE_2:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00100110,                  // ld h,n8
+                8'b00101110,                  // ld l,n8
                 8'b00111110:                  // ld a,n8
                     alu_a_mux_sel = `ALU_A_DIN;
             endcase
@@ -268,7 +270,9 @@ begin
         `DECODE_2:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00xxx110:                   // ld r,n8, TODO: what if it's ld [hl],n8?
+                8'b00100110,                   // ld h,n8
+                8'b00101110,                   // ld l,n8
+                8'b00111110:                   // ld a,n8
                     alu_op_sel = `ALU_A_PASS;
             endcase
         `EXEC_1C:
@@ -309,6 +313,8 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b00011000,                   // jr s8
+                8'b00100110,                   // ld h,n8
+                8'b00101110,                   // ld l,n8
                 8'b00111110:                   // ld a,n8
                     ld_din_enable = `DIN_BOTH;
             endcase
@@ -338,6 +344,10 @@ begin
         `DECODE_2:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00100110:     // ld h,n8
+                    ld_reg_enable = `LD_REG_H;
+                8'bb00101110:    // ld l,n8
+                    ld_reg_enable = `LD_REG_L;
                 8'b00111110:     // ld a,n8
                     ld_reg_enable = `LD_REG_A;
                 //8'b00100001:     // ld hl,n16 // TODO:

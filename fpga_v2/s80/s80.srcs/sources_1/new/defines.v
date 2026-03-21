@@ -126,15 +126,18 @@
 
 // Load register control
 // TODO: could move PC to have its own signal
-`define LD_REG_IDX 2
-`define LD_REG_NONE   3'h0
-`define LD_REG_A      3'h1
-`define LD_REG_HL     3'h2
-`define LD_REG_PC     3'h4
+`define LD_REG_IDX 3
+`define LD_REG_NONE   4'b0000
+`define LD_REG_A      4'b0001
+`define LD_REG_H      4'b0010
+`define LD_REG_L      4'b0100
+`define LD_REG_HL     4'b0110
+`define LD_REG_PC     4'b1000
 
 `define LD_A          0
-`define LD_HL         1
-`define LD_PC         2
+`define LD_H          1
+`define LD_L          2
+`define LD_PC         3
 
 //*************************************************************************************************
 
