@@ -11,14 +11,16 @@ module mem_management_unit(
 
 //*************************************************************************************************
 
-// The 16th address line will always indicate RAM vs ROM
-localparam USABLE_ADDR_LINES = 15;
-localparam NUM_ADDRESSES = 2**USABLE_ADDR_LINES;
+// There are 16 address lines.
+// bit 15 indicates RAM vs ROM.
+// bits 14:0 indicate which address in the RAM or ROM.
+// There are 2^15 addresses in RAM and 2^15 addresses in ROM.
+localparam NUM_ADDRESSES = 2**15;
 
 //*************************************************************************************************
 
 // signals/registers
-reg [USABLE_ADDR_LINES-1:0] addr_reg;
+reg [15:0] addr_reg;
 
 // ROM data
 reg [7:0] rom_instructions [0:NUM_ADDRESSES-1];
@@ -41,9 +43,9 @@ end
 always @(posedge clk)
 begin
     if ((mem_wr_enable) && (mem_addr[15]))
-        ram[mem_addr[USABLE_ADDR_LINES-1:0]] <= mem_data_wr;
+        ram[mem_addr[14:0]] <= mem_data_wr;
     
-    addr_reg <= mem_addr[USABLE_ADDR_LINES-1:0];
+    addr_reg <= mem_addr;
 end
 
 //*************************************************************************************************
@@ -51,6 +53,6 @@ end
 //*************************************************************************************************
 
 // output logic
-assign mem_data_rd = (mem_addr[15]) ? ram[addr_reg] : rom_instructions[addr_reg];
+assign mem_data_rd = (addr_reg[15]) ? ram[addr_reg[14:0]] : rom_instructions[addr_reg[14:0]];
 
 endmodule
