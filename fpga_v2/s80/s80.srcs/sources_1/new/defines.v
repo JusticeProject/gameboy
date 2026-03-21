@@ -104,16 +104,21 @@
 `define ALU_B_ZERO           4'h0
 `define ALU_B_ONE_LOW        4'h1
 `define ALU_B_ONE_HIGH       4'h2
-`define ALU_B_DIN0_SIGN_EXT  4'h4
+`define ALU_B_DIN            4'h4
+`define ALU_B_DIN0_SIGN_EXT  4'h8
 
 //*************************************************************************************************
 
 // ALU Math operations
-`define ALU_OP_IDX 3
-`define ALU_A_PASS       4'h0
-`define ALU_B_PASS       4'h1
-`define ALU_ADD          4'h2
-`define ALU_SUB          4'h4
+`define ALU_OP_IDX 6
+`define ALU_A_PASS       7'h00
+`define ALU_B_PASS       7'h01
+`define ALU_ADD_WORD     7'h02
+`define ALU_ADD_LO_BYTE  7'h04
+`define ALU_ADD_HI_BYTE  7'h08
+`define ALU_SUB_WORD     7'h10
+`define ALU_SUB_LO_BYTE  7'h20
+`define ALU_SUB_HI_BYTE  7'h40
 
 //*************************************************************************************************
 //*************************************************************************************************

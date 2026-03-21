@@ -24,7 +24,7 @@ begin
     resetb = 1'b0;
     #20
     resetb = 1'b1;
-    #800
+    #4000
     resetb = 1'b0;
 end
 

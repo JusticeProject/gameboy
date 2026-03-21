@@ -76,7 +76,7 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b00011000:                // jr s8
-                    state_next = `IDLE_2;
+                    state_next = `sIDLE_2;
                 default:
                     state_next = `sDONE;
             endcase
@@ -131,10 +131,13 @@ begin
             end
         // TODO:
         `EXEC_1A:
-            begin
-                // send the hl register onto the mem_addr bus
-                hl_out_enable = 1'b1;
-            end
+            // TODO:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b01110111:                 // ld [hl],a
+                    // send the hl register onto the mem_addr bus
+                    hl_out_enable = 1'b1;
+            endcase
     endcase
 end
 
@@ -166,12 +169,16 @@ end
 // output control signals for mem write control
 always @*
 begin
+    mem_wr_enable = 1'b0; // set the default value
+    
     (* parallel_case *)
     casex (state_reg)
         `EXEC_1B:
-            mem_wr_enable = 1'b1;
-        default:
-            mem_wr_enable = 1'b0;
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b01110111:                     // ld [hl],a
+                    mem_wr_enable = 1'b1;
+            endcase
     endcase
 end
 
@@ -188,10 +195,7 @@ begin
     casex (state_reg)
         `INSTR_FETCH_1A,
         `INSTR_FETCH_2A,
-        `INSTR_FETCH_3A,
-        `EXEC_1A,
-        `EXEC_2A,
-        `EXEC_3A:
+        `INSTR_FETCH_3A:
             alu_a_mux_sel = `ALU_A_PC; // increment pc
         `DECODE_1:
             (* parallel_case *)
@@ -252,14 +256,14 @@ begin
     casex (state_reg)
         `INSTR_FETCH_1A,
         `INSTR_FETCH_2A:
-            alu_op_sel = `ALU_ADD; // increment pc
+            alu_op_sel = `ALU_ADD_WORD; // increment pc
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00xxx100:
-                    alu_op_sel = `ALU_ADD;
-                8'b00xxx101:
-                    alu_op_sel = `ALU_SUB;
+                8'b00xxx100:                 // inc a
+                    alu_op_sel = `ALU_ADD_HI_BYTE;
+                8'b00xxx101:                 // dec a
+                    alu_op_sel = `ALU_SUB_HI_BYTE;
             endcase
         `DECODE_2:
             (* parallel_case *)
@@ -270,8 +274,8 @@ begin
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:
-                    alu_op_sel = `ALU_ADD;
+                8'b00011000:               // jr s8
+                    alu_op_sel = `ALU_ADD_WORD;
             endcase
     endcase
 end
@@ -323,10 +327,7 @@ begin
     casex (state_reg)
         `INSTR_FETCH_1A,
         `INSTR_FETCH_2A,
-        `INSTR_FETCH_3A,
-        `EXEC_1A,
-        `EXEC_2A,
-        `EXEC_3A:
+        `INSTR_FETCH_3A:
             ld_reg_enable = `LD_REG_PC;  // increment pc
         `DECODE_1:
             (* parallel_case *)

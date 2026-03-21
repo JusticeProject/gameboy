@@ -156,6 +156,7 @@ alu_a_mux ALU_A_MUX_UNIT (.alu_a_mux_sel(alu_a_mux_sel),
                           .alu_a_mux_out(alu_a_in));
 
 alu_b_mux ALU_B_MUX_UNIT (.alu_b_mux_sel(alu_b_mux_sel),
+                          .din_reg({din1, din0}),
                           .alu_b_mux_out(alu_b_in));
 
 alu_math ALU_MATH_UNIT (.alu_a_in(alu_a_in), .alu_b_in(alu_b_in), .alu_op_sel(alu_op_sel), .alu_math_out(alu_out_bus));

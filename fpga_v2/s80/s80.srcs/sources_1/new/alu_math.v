@@ -19,9 +19,18 @@ begin
             alu_math_out = alu_a_in;
         `ALU_B_PASS:
             alu_math_out = alu_b_in;
-        `ALU_ADD:
+        `ALU_ADD_WORD:
             alu_math_out = alu_a_in + alu_b_in;
-        `ALU_SUB:
+        // TODO: need to handle flags
+        `ALU_ADD_LO_BYTE:
+            alu_math_out = alu_a_in + alu_b_in;
+        `ALU_ADD_HI_BYTE:
+            alu_math_out = alu_a_in + alu_b_in;
+        `ALU_SUB_WORD:
+            alu_math_out = alu_a_in - alu_b_in;
+        `ALU_SUB_LO_BYTE:
+            alu_math_out = alu_a_in - alu_b_in;
+        `ALU_SUB_HI_BYTE:
             alu_math_out = alu_a_in - alu_b_in;
         default:
             alu_math_out = 16'h0000;
