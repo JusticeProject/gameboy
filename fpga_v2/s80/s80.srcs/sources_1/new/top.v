@@ -17,9 +17,12 @@ wire [1:0] ld_din_enable;
 wire [`LD_REG_IDX:0] ld_reg_enable;
 
 // ALU control signals
-wire [`ALU_A_IDX:0] alu_a_mux_sel;
-wire [`ALU_B_IDX:0] alu_b_mux_sel;
+wire [`ALUA_IDX:0] alu_a_mux_sel;
+wire [`ALUB_IDX:0] alu_b_mux_sel;
 wire [`ALU_OP_IDX:0] alu_op_sel;
+
+// flag control signals
+wire z_flag_enable;
 
 // status signals
 wire [7:0] instr_reg;
@@ -36,6 +39,7 @@ control CONTROL_UNIT (.clk(clk), .resetb(resetb),
                       .pc_out_enable(pc_out_enable), .hl_out_enable(hl_out_enable), .a_out_enable(a_out_enable), .mem_wr_enable(mem_wr_enable), 
                       .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
                       .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
+                      .z_flag_enable(z_flag_enable),
                       .instr_reg(instr_reg));
 
 // instantiate the datapath unit
@@ -43,6 +47,7 @@ datapath DATAPATH_UNIT (.clk(clk), .resetb(resetb),
                         .pc_out_enable(pc_out_enable), .hl_out_enable(hl_out_enable), .a_out_enable(a_out_enable),
                         .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
                         .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
+                        .z_flag_enable(z_flag_enable),
                          .instr_reg(instr_reg),
                         .mem_data_rd(mem_data_rd), .mem_addr(mem_addr), .mem_data_wr(mem_data_wr));
 

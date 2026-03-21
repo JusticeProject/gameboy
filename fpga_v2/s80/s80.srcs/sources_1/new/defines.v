@@ -92,20 +92,21 @@
 //*************************************************************************************************
 
 // ALU A Mux selector
-`define ALU_A_IDX 3
-`define ALU_A_NONE           4'h0
-`define ALU_A_A              4'h1
-`define ALU_A_HL             4'h2
-`define ALU_A_DIN            4'h4
-`define ALU_A_PC             4'h8
+`define ALUA_IDX 4
+`define ALUA_NONE           5'b00000
+`define ALUA_A              5'b00001
+`define ALUA_F              5'b00010
+`define ALUA_HL             5'b00100
+`define ALUA_DIN            5'b01000
+`define ALUA_PC             5'b10000
 
 // ALU B Mux selector
-`define ALU_B_IDX 3
-`define ALU_B_ZERO           4'h0
-`define ALU_B_ONE_LOW        4'h1
-`define ALU_B_ONE_HIGH       4'h2
-`define ALU_B_DIN            4'h4
-`define ALU_B_DIN0_SIGN_EXT  4'h8
+`define ALUB_IDX 3
+`define ALUB_ZERO           4'h0
+`define ALUB_ONE_LOW        4'h1
+`define ALUB_ONE_HIGH       4'h2
+`define ALUB_DIN            4'h4
+`define ALUB_DIN0_SIGN_EXT  4'h8
 
 //*************************************************************************************************
 
@@ -126,18 +127,23 @@
 
 // Load register control
 // TODO: could move PC to have its own signal
-`define LD_REG_IDX 3
-`define LD_REG_NONE   4'b0000
-`define LD_REG_A      4'b0001
-`define LD_REG_H      4'b0010
-`define LD_REG_L      4'b0100
-`define LD_REG_HL     4'b0110
-`define LD_REG_PC     4'b1000
+`define LD_REG_IDX 5
+`define LD_REG_NONE   6'b000000
+`define LD_REG_A      6'b000001
+`define LD_REG_F      6'b000010
+`define LD_REG_AF     6'b000011
+`define LD_UPD_REG_F  6'b000110
+`define LD_REG_H      6'b001000
+`define LD_REG_L      6'b010000
+`define LD_REG_HL     6'b011000
+`define LD_REG_PC     6'b100000
 
 `define LD_A          0
-`define LD_H          1
-`define LD_L          2
-`define LD_PC         3
+`define LD_F          1
+`define UPD_F         2
+`define LD_H          3
+`define LD_L          4
+`define LD_PC         5
 
 //*************************************************************************************************
 

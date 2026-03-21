@@ -15,9 +15,12 @@ module datapath(
     input wire [`LD_REG_IDX:0] ld_reg_enable,
     
     // ALU control signals
-    input wire [`ALU_A_IDX:0] alu_a_mux_sel,
-    input wire [`ALU_B_IDX:0] alu_b_mux_sel,
+    input wire [`ALUA_IDX:0] alu_a_mux_sel,
+    input wire [`ALUB_IDX:0] alu_b_mux_sel,
     input wire [`ALU_OP_IDX:0] alu_op_sel,
+    
+    // flag control signals
+    input z_flag_enable,
     
     // status signals
     output reg [7:0] instr_reg,
@@ -38,10 +41,15 @@ reg [15:0] pc_reg; // the main program counter
 
 // the registers
 reg [7:0] a_reg;
-reg [15:0] hl_reg;
+reg [7:0] f_reg;
+reg [7:0] f_updates;
+reg [7:0] h_reg;
+reg [7:0] l_reg;
 
 // control signals for loading the registers
 wire ld_a_enable;
+wire ld_f_enable;
+wire update_f_from_alu_op;
 wire ld_h_enable;
 wire ld_l_enable;
 wire ld_pc_enable;
@@ -50,6 +58,7 @@ reg [7:0] din0, din1;
 
 // signals to/from the ALU
 wire [15:0] alu_a_in, alu_b_in;
+wire zero_next;
 wire [15:0] alu_out_bus;
 
 //*************************************************************************************************
@@ -64,7 +73,7 @@ begin
     else if (pc_out_enable)
         mem_addr <= pc_reg;
     else if (hl_out_enable)
-        mem_addr <= hl_reg;
+        mem_addr <= {h_reg, l_reg};
 end
 
 //*************************************************************************************************
@@ -113,6 +122,8 @@ end
 //*************************************************************************************************
 
 assign ld_a_enable = ld_reg_enable[`LD_A];
+assign ld_f_enable = ld_reg_enable[`LD_F];
+assign update_f_from_alu_op = ld_reg_enable[`UPD_F];
 assign ld_h_enable = ld_reg_enable[`LD_H];
 assign ld_l_enable = ld_reg_enable[`LD_L];
 assign ld_pc_enable = ld_reg_enable[`LD_PC];
@@ -125,17 +136,33 @@ begin
     if (!resetb)
         begin
             a_reg <= 8'h00;
-            hl_reg <= 16'h0000;
+            f_reg <= 8'h00;
+            h_reg <= 8'h00;
+            l_reg <= 8'h00;
         end
     else
         begin
             if (ld_a_enable)
                 a_reg <= alu_out_bus[15:8];
+            // for the flags we either load the entire value which probably came from din0 or update it from the ALU operations
+            if (ld_f_enable)
+                f_reg <= (update_f_from_alu_op) ? f_updates : alu_out_bus[7:0];
             if (ld_h_enable)
-                hl_reg[15:8] <= alu_out_bus[15:8];
+                h_reg <= alu_out_bus[15:8];
             if (ld_l_enable)
-                hl_reg[7:0] <= alu_out_bus[7:0];
+                l_reg <= alu_out_bus[7:0];
         end
+end
+
+//*************************************************************************************************
+
+always @*
+begin
+    f_updates = f_reg; // set the default
+    
+    // the flags are ZNHC----
+    if (z_flag_enable)
+        f_updates[7] = zero_next;
 end
 
 //*************************************************************************************************
@@ -156,14 +183,14 @@ end
 
 // instantiate the ALU modules
 alu_a_mux ALU_A_MUX_UNIT (.alu_a_mux_sel(alu_a_mux_sel), 
-                          .a_reg(a_reg), .hl_reg(hl_reg), .din_reg({din1, din0}), .pc_reg(pc_reg),
+                          .a_reg(a_reg), .f_reg(f_reg), .h_reg(h_reg), .l_reg(l_reg), .din_reg({din1, din0}), .pc_reg(pc_reg),
                           .alu_a_mux_out(alu_a_in));
 
 alu_b_mux ALU_B_MUX_UNIT (.alu_b_mux_sel(alu_b_mux_sel),
                           .din_reg({din1, din0}),
                           .alu_b_mux_out(alu_b_in));
 
-alu_math ALU_MATH_UNIT (.alu_a_in(alu_a_in), .alu_b_in(alu_b_in), .alu_op_sel(alu_op_sel), .alu_math_out(alu_out_bus));
+alu_math ALU_MATH_UNIT (.alu_a_in(alu_a_in), .alu_b_in(alu_b_in), .alu_op_sel(alu_op_sel), .zero_next(zero_next), .alu_math_out(alu_out_bus));
 
 
 endmodule

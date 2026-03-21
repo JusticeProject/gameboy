@@ -1,7 +1,7 @@
 @0000
 2E 01       // ld l,01
 26 80       // ld h,80
-3E 03       // ld a,3
+3E 01       // ld a,1
 3D          // dec a
 77          // ld [hl],a
 00          // nop

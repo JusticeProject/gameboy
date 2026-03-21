@@ -6,6 +6,7 @@ module alu_math(
     
     input wire [`ALU_OP_IDX:0] alu_op_sel,
     
+    output reg zero_next,
     output reg [15:0] alu_math_out
 );
 
@@ -34,6 +35,25 @@ begin
             alu_math_out = alu_a_in - alu_b_in;
         default:
             alu_math_out = 16'h0000;
+    endcase
+end
+
+//*************************************************************************************************
+
+always @*
+begin
+    zero_next = 1'b0; // set the default
+    
+    case (alu_op_sel)
+        `ALU_ADD_WORD,
+        `ALU_SUB_WORD:
+            zero_next = ~|alu_math_out[15:0]; // OR all of the bits together, then NOT it
+        `ALU_ADD_LO_BYTE,
+        `ALU_SUB_LO_BYTE:
+            zero_next = ~|alu_math_out[7:0];
+        `ALU_ADD_HI_BYTE,
+        `ALU_SUB_HI_BYTE:
+            zero_next = ~|alu_math_out[15:8];
     endcase
 end
 
