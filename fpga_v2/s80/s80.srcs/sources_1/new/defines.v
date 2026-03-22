@@ -92,20 +92,21 @@
 //*************************************************************************************************
 
 // ALU A Mux selector
-`define ALUA_IDX 8
-`define ALUA_NONE           9'b000000000
-`define ALUA_A              9'b000000001
-`define ALUA_B              9'b000000010
-`define ALUA_C              9'b000000100
-`define ALUA_BC             9'b000000110
-`define ALUA_D              9'b000001000
-`define ALUA_E              9'b000010000
-`define ALUA_DE             9'b000011000
-`define ALUA_H              9'b000100000
-`define ALUA_L              9'b001000000
-`define ALUA_HL             9'b001100000
-`define ALUA_DIN            9'b010000000
-`define ALUA_PC             9'b100000000
+`define ALUA_IDX 9
+`define ALUA_NONE           10'b0000000000
+`define ALUA_A              10'b0000000001
+`define ALUA_B              10'b0000000010
+`define ALUA_C              10'b0000000100
+`define ALUA_BC             10'b0000000110
+`define ALUA_D              10'b0000001000
+`define ALUA_E              10'b0000010000
+`define ALUA_DE             10'b0000011000
+`define ALUA_H              10'b0000100000
+`define ALUA_L              10'b0001000000
+`define ALUA_HL             10'b0001100000
+`define ALUA_DIN            10'b0010000000
+`define ALUA_PC             10'b0100000000
+`define ALUA_SP             10'b1000000000
 
 // ALU B Mux selector
 `define ALUB_IDX 2
@@ -131,22 +132,22 @@
 
 // Load register control
 // TODO: could move PC to have its own signal
-`define LD_REG_IDX 9
-`define LD_REG_NONE   10'b0000000000
-`define LD_REG_A      10'b0000000001
-`define LD_REG_F      10'b0000000010
-`define LD_REG_AF     10'b0000000011
-`define LD_UPD_REG_F  10'b0000000100
-`define LD_REG_B      10'b0000001000
-`define LD_REG_C      10'b0000010000
-`define LD_REG_BC     10'b0000011000
-`define LD_REG_D      10'b0000100000
-`define LD_REG_E      10'b0001000000
-`define LD_REG_DE     10'b0001100000
-`define LD_REG_H      10'b0010000000
-`define LD_REG_L      10'b0100000000
-`define LD_REG_HL     10'b0110000000
-`define LD_REG_PC     10'b1000000000
+`define LD_REG_IDX 10
+`define LD_REG_NONE   11'b00000000000
+`define LD_REG_A      11'b00000000001
+`define LD_REG_F      11'b00000000010
+`define LD_REG_AF     11'b00000000011
+`define LD_UPD_REG_F  11'b00000000100
+`define LD_REG_B      11'b00000001000
+`define LD_REG_C      11'b00000010000
+`define LD_REG_BC     11'b00000011000
+`define LD_REG_D      11'b00000100000
+`define LD_REG_E      11'b00001000000
+`define LD_REG_DE     11'b00001100000
+`define LD_REG_H      11'b00010000000
+`define LD_REG_L      11'b00100000000
+`define LD_REG_HL     11'b00110000000
+`define LD_REG_PC     11'b01000000000
 
 `define LD_A          0
 `define LD_F          1
@@ -158,6 +159,7 @@
 `define LD_H          7
 `define LD_L          8
 `define LD_PC         9
+`define LD_SP         10
 
 //*************************************************************************************************
 

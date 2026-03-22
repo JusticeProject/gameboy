@@ -26,6 +26,7 @@ wire z_flag_enable;
 
 // status signals
 wire [7:0] instr_reg;
+wire z_flag_reg;
 
 // memory signals
 wire [15:0] mem_addr;
@@ -40,7 +41,7 @@ control CONTROL_UNIT (.clk(clk), .resetb(resetb),
                       .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
                       .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
                       .z_flag_enable(z_flag_enable),
-                      .instr_reg(instr_reg));
+                      .instr_reg(instr_reg), .z_flag_reg(z_flag_reg));
 
 // instantiate the datapath unit
 datapath DATAPATH_UNIT (.clk(clk), .resetb(resetb), 
@@ -48,7 +49,7 @@ datapath DATAPATH_UNIT (.clk(clk), .resetb(resetb),
                         .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
                         .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
                         .z_flag_enable(z_flag_enable),
-                         .instr_reg(instr_reg),
+                         .instr_reg(instr_reg), .z_flag_reg(z_flag_reg),
                         .mem_data_rd(mem_data_rd), .mem_addr(mem_addr), .mem_data_wr(mem_data_wr));
 
 // instantiate the MMU

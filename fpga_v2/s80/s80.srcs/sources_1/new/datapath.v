@@ -24,6 +24,7 @@ module datapath(
     
     // status signals
     output reg [7:0] instr_reg,
+    output wire z_flag_reg,
     
     // memory signals
     input wire [7:0] mem_data_rd,
@@ -38,6 +39,7 @@ module datapath(
 // internal signals/registers
 // instr_reg was declared above as an output
 reg [15:0] pc_reg; // the main program counter
+reg [15:0] sp_reg; // the stack pointer
 
 // the registers
 reg [7:0] a_reg;
@@ -64,6 +66,7 @@ wire ld_h_enable;
 wire ld_l_enable;
 wire ld_hl_enable;
 wire ld_pc_enable;
+wire ld_sp_enable;
 
 reg [7:0] din0, din1;
 
@@ -145,6 +148,7 @@ assign ld_h_enable = ld_reg_enable[`LD_H];
 assign ld_l_enable = ld_reg_enable[`LD_L];
 assign ld_hl_enable = ld_reg_enable[`LD_H] && ld_reg_enable[`LD_L];
 assign ld_pc_enable = ld_reg_enable[`LD_PC];
+assign ld_sp_enable = ld_reg_enable[`LD_SP];
 
 //*************************************************************************************************
 
@@ -219,6 +223,7 @@ end
 
 //*************************************************************************************************
 
+// update the flags with signals from the ALU
 always @(z_flag_enable, f_reg, z_flag_next)
 begin
     f_updates = f_reg; // set the default
@@ -230,14 +235,28 @@ end
 
 //*************************************************************************************************
 
+// send flags to the control unit
+assign z_flag_reg = f_reg[7];
+
+//*************************************************************************************************
+
 // load the PC
 always @(negedge resetb, posedge clk)
 begin
     // TODO: need to start at h0100 for GameBoy ROM
     if (!resetb)
-        pc_reg <= 16'h0000;
-    else if (ld_pc_enable)
-        pc_reg <= alu_out_bus;
+        begin
+            pc_reg <= 16'h0000;
+            sp_reg <= 16'hFFFE;
+        end
+    else 
+        begin
+            if (ld_pc_enable)
+                pc_reg <= alu_out_bus;
+            
+            if (ld_sp_enable)
+                sp_reg <= alu_out_bus;
+        end
 end
 
 //*************************************************************************************************
@@ -247,7 +266,7 @@ end
 // instantiate the ALU modules
 alu_a_mux ALU_A_MUX_UNIT (.alu_a_mux_sel(alu_a_mux_sel), 
                           .a_reg(a_reg), .b_reg(b_reg), .c_reg(c_reg), .d_reg(d_reg), .e_reg(e_reg), .h_reg(h_reg), .l_reg(l_reg), 
-                          .din_reg({din1, din0}), .pc_reg(pc_reg),
+                          .din_reg({din1, din0}), .pc_reg(pc_reg), .sp_reg(sp_reg),
                           .alu_a_mux_out(alu_a_in));
 
 alu_b_mux ALU_B_MUX_UNIT (.alu_b_mux_sel(alu_b_mux_sel),

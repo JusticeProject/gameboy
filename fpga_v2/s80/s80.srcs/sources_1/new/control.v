@@ -24,7 +24,8 @@ module control(
     output reg z_flag_enable,
     
     // status signals
-    input wire [7:0] instr_reg
+    input wire [7:0] instr_reg,
+    input wire z_flag_reg
 );
 
 //*************************************************************************************************
@@ -65,6 +66,7 @@ begin
             casex (instr_reg)
                 8'b00xxx110,              // ld r8,n8 or ld [hl],n8
                 8'b00011000,              // jr s8
+                8'b00100000,              // jr nz, s8
                 8'b01110111:              // ld [hl],a
                     state_next = `sIDLE_1;
                 default:
@@ -73,7 +75,7 @@ begin
         `IDLE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b01110111:            // ld [hl],a
+                8'b01110111:              // ld [hl],a
                     state_next = `sEXEC_1A;
                 default:
                     state_next = `sINSTR_FETCH_2A;
@@ -87,13 +89,16 @@ begin
             casex (instr_reg)
                 8'b00011000:                // jr s8
                     state_next = `sIDLE_2;
+                8'b00100000:                // jr nz, s8
+                    state_next = (z_flag_reg) ? `sDONE : `sIDLE_2;
                 default:
                     state_next = `sDONE;
             endcase
         `IDLE_2:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:              // jr s8
+                8'b00011000,              // jr s8
+                8'b00100000:              // jr nz, s8
                     state_next = `sEXEC_1A;
                 default:
                     state_next = `sINSTR_FETCH_3A;
@@ -224,7 +229,8 @@ begin
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:             // jr s8
+                8'b00011000,             // jr s8
+                8'b00100000:             // jr nz, s8
                     alu_a_mux_sel = `ALUA_PC;
             endcase
     endcase
@@ -257,7 +263,8 @@ begin
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:         // jr s8
+                8'b00011000,         // jr s8
+                8'b00100000:         // jr nz, s8
                     alu_b_mux_sel = `ALUB_DIN0_SIGN_EXT;
             endcase
     endcase
@@ -294,7 +301,8 @@ begin
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:               // jr s8
+                8'b00011000,               // jr s8
+                8'b00100000:               // jr nz, s8
                     alu_op_sel = `ALU_ADD_WORD;
             endcase
     endcase
@@ -329,6 +337,7 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b00011000,                   // jr s8
+                8'b00100000,                   // jr nz, s8
                 8'b00100110,                   // ld h,n8
                 8'b00101110,                   // ld l,n8
                 8'b00111110:                   // ld a,n8
@@ -384,7 +393,8 @@ begin
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:           // jr s8
+                8'b00011000,           // jr s8
+                8'b00100000:           // jr nz, s8
                     ld_reg_enable = `LD_REG_PC;
             endcase
     endcase

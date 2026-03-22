@@ -14,6 +14,7 @@ module alu_a_mux(
     input wire [7:0] l_reg,
     input wire [15:0] din_reg,
     input wire [15:0] pc_reg,
+    input wire [15:0] sp_reg,
     
     // the output data
     output reg [15:0] alu_a_mux_out
@@ -49,6 +50,8 @@ begin
             alu_a_mux_out = din_reg;
         `ALUA_PC:
             alu_a_mux_out = pc_reg;
+        `ALUA_SP:
+            alu_a_mux_out = sp_reg;
         default:
             alu_a_mux_out = 16'h0000;
     endcase
