@@ -19,10 +19,8 @@ begin
     case (alu_b_mux_sel)
         `ALUB_ZERO:
             alu_b_mux_out = 16'h0000;
-        `ALUB_ONE_LOW:
+        `ALUB_ONE:
             alu_b_mux_out = 16'h0001;
-        `ALUB_ONE_HIGH:
-            alu_b_mux_out = 16'h0100;
         `ALUB_DIN:
             alu_b_mux_out = din_reg;
         `ALUB_DIN0_SIGN_EXT:

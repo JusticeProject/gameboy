@@ -92,34 +92,38 @@
 //*************************************************************************************************
 
 // ALU A Mux selector
-`define ALUA_IDX 4
-`define ALUA_NONE           5'b00000
-`define ALUA_A              5'b00001
-`define ALUA_F              5'b00010
-`define ALUA_HL             5'b00100
-`define ALUA_DIN            5'b01000
-`define ALUA_PC             5'b10000
+`define ALUA_IDX 8
+`define ALUA_NONE           9'b000000000
+`define ALUA_A              9'b000000001
+`define ALUA_B              9'b000000010
+`define ALUA_C              9'b000000100
+`define ALUA_BC             9'b000000110
+`define ALUA_D              9'b000001000
+`define ALUA_E              9'b000010000
+`define ALUA_DE             9'b000011000
+`define ALUA_H              9'b000100000
+`define ALUA_L              9'b001000000
+`define ALUA_HL             9'b001100000
+`define ALUA_DIN            9'b010000000
+`define ALUA_PC             9'b100000000
 
 // ALU B Mux selector
-`define ALUB_IDX 3
-`define ALUB_ZERO           4'h0
-`define ALUB_ONE_LOW        4'h1
-`define ALUB_ONE_HIGH       4'h2
-`define ALUB_DIN            4'h4
-`define ALUB_DIN0_SIGN_EXT  4'h8
+`define ALUB_IDX 2
+`define ALUB_ZERO           3'b000
+`define ALUB_ONE            3'b001
+`define ALUB_DIN            3'b010
+`define ALUB_DIN0_SIGN_EXT  3'b100
 
 //*************************************************************************************************
 
 // ALU Math operations
-`define ALU_OP_IDX 6
-`define ALU_A_PASS       7'h00
-`define ALU_B_PASS       7'h01
-`define ALU_ADD_WORD     7'h02
-`define ALU_ADD_LO_BYTE  7'h04
-`define ALU_ADD_HI_BYTE  7'h08
-`define ALU_SUB_WORD     7'h10
-`define ALU_SUB_LO_BYTE  7'h20
-`define ALU_SUB_HI_BYTE  7'h40
+`define ALU_OP_IDX 4
+`define ALU_A_PASS       5'b00000
+`define ALU_B_PASS       5'b00001
+`define ALU_ADD_WORD     5'b00010
+`define ALU_ADD_BYTE     5'b00100
+`define ALU_SUB_WORD     5'b01000
+`define ALU_SUB_BYTE     5'b10000
 
 //*************************************************************************************************
 //*************************************************************************************************
@@ -127,23 +131,33 @@
 
 // Load register control
 // TODO: could move PC to have its own signal
-`define LD_REG_IDX 5
-`define LD_REG_NONE   6'b000000
-`define LD_REG_A      6'b000001
-`define LD_REG_F      6'b000010
-`define LD_REG_AF     6'b000011
-`define LD_UPD_REG_F  6'b000110
-`define LD_REG_H      6'b001000
-`define LD_REG_L      6'b010000
-`define LD_REG_HL     6'b011000
-`define LD_REG_PC     6'b100000
+`define LD_REG_IDX 9
+`define LD_REG_NONE   10'b0000000000
+`define LD_REG_A      10'b0000000001
+`define LD_REG_F      10'b0000000010
+`define LD_REG_AF     10'b0000000011
+`define LD_UPD_REG_F  10'b0000000100
+`define LD_REG_B      10'b0000001000
+`define LD_REG_C      10'b0000010000
+`define LD_REG_BC     10'b0000011000
+`define LD_REG_D      10'b0000100000
+`define LD_REG_E      10'b0001000000
+`define LD_REG_DE     10'b0001100000
+`define LD_REG_H      10'b0010000000
+`define LD_REG_L      10'b0100000000
+`define LD_REG_HL     10'b0110000000
+`define LD_REG_PC     10'b1000000000
 
 `define LD_A          0
 `define LD_F          1
 `define UPD_F         2
-`define LD_H          3
-`define LD_L          4
-`define LD_PC         5
+`define LD_B          3
+`define LD_C          4
+`define LD_D          5
+`define LD_E          6
+`define LD_H          7
+`define LD_L          8
+`define LD_PC         9
 
 //*************************************************************************************************
 

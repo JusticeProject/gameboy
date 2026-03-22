@@ -204,6 +204,12 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
+                8'b0000010x,        // inc b or dec b
+                8'b0000110x,        // inc c or dec c
+                8'b0001010x,        // inc d or dec d
+                8'b0001110x,        // inc e or dec e
+                8'b0010010x,        // inc h or dec h
+                8'b0010110x,        // inc l or dec l
                 8'b0011110x:        // inc a or dec a
                     alu_a_mux_sel = `ALUA_A;
             endcase
@@ -235,12 +241,18 @@ begin
     casex (state_reg)
         `INSTR_FETCH_1A,
         `INSTR_FETCH_2A:
-            alu_b_mux_sel = `ALUB_ONE_LOW; // increment pc
+            alu_b_mux_sel = `ALUB_ONE; // increment pc
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b0011110x:       // inc a or dec a
-                    alu_b_mux_sel = `ALUB_ONE_HIGH;
+                8'b0000010x,        // inc b or dec b
+                8'b0000110x,        // inc c or dec c
+                8'b0001010x,        // inc d or dec d
+                8'b0001110x,        // inc e or dec e
+                8'b0010010x,        // inc h or dec h
+                8'b0010110x,        // inc l or dec l
+                8'b0011110x:        // inc a or dec a
+                    alu_b_mux_sel = `ALUB_ONE;
             endcase
         `EXEC_1C:
             (* parallel_case *)
@@ -266,10 +278,10 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00xxx100:                 // inc a
-                    alu_op_sel = `ALU_ADD_HI_BYTE;
-                8'b00xxx101:                 // dec a
-                    alu_op_sel = `ALU_SUB_HI_BYTE;
+                8'b00xxx100:                 // inc r8, will also trigger for inc [hl] but it won't matter
+                    alu_op_sel = `ALU_ADD_BYTE;
+                8'b00xxx101:                 // dec r8, will also trigger for dec [hl] but it won't matter
+                    alu_op_sel = `ALU_SUB_BYTE;
             endcase
         `DECODE_2:
             (* parallel_case *)
@@ -342,6 +354,18 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
+                8'b0000010x:        // inc b or dec b
+                    ld_reg_enable = `LD_REG_B | `LD_UPD_REG_F;
+                8'b0000110x:        // inc c or dec c
+                    ld_reg_enable = `LD_REG_C | `LD_UPD_REG_F;
+                8'b0001010x:        // inc d or dec d
+                    ld_reg_enable = `LD_REG_D | `LD_UPD_REG_F;
+                8'b0001110x:        // inc e or dec e
+                    ld_reg_enable = `LD_REG_E | `LD_UPD_REG_F;
+                8'b0010010x:        // inc h or dec h
+                    ld_reg_enable = `LD_REG_H | `LD_UPD_REG_F;
+                8'b0010110x:        // inc l or dec l
+                    ld_reg_enable = `LD_REG_L | `LD_UPD_REG_F;
                 8'b0011110x:        // inc a or dec a
                     ld_reg_enable = `LD_REG_A | `LD_UPD_REG_F;
             endcase
@@ -380,6 +404,12 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
+                8'b0000010x,        // inc b or dec b
+                8'b0000110x,        // inc c or dec c
+                8'b0001010x,        // inc d or dec d
+                8'b0001110x,        // inc e or dec e
+                8'b0010010x,        // inc h or dec h
+                8'b0010110x,        // inc l or dec l
                 8'b0011110x:        // inc a or dec a
                     z_flag_enable = 1'b1;
             endcase
