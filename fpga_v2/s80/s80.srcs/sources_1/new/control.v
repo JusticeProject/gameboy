@@ -67,7 +67,8 @@ begin
                 8'b00xxx110,              // ld r8,n8 or ld [hl],n8
                 8'b00011000,              // jr s8
                 8'b00100000,              // jr nz, s8
-                8'b01110111:              // ld [hl],a
+                8'b01110111,              // ld [hl],a
+                8'b11000011:              // jp n16
                     state_next = `sIDLE_1;
                 default:
                     state_next = `sDONE;
@@ -87,7 +88,8 @@ begin
         `DECODE_2:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011000:                // jr s8
+                8'b00011000,                // jr s8
+                8'b11000011:                // jp n16
                     state_next = `sIDLE_2;
                 8'b00100000:                // jr nz, s8
                     state_next = (z_flag_reg) ? `sDONE : `sIDLE_2;
@@ -102,6 +104,16 @@ begin
                     state_next = `sEXEC_1A;
                 default:
                     state_next = `sINSTR_FETCH_3A;
+            endcase
+        `INSTR_FETCH_3A:
+            state_next = `sINSTR_FETCH_3B;
+        `INSTR_FETCH_3B:
+            state_next = `sDECODE_3;
+        `DECODE_3:
+            (* parallel_case *)
+            casex (instr_reg)
+                default:
+                    state_next = `sDONE;
             endcase
         `EXEC_1A:
             state_next = `sEXEC_1B;
@@ -234,6 +246,12 @@ begin
                 8'b00100000:             // jr nz, s8
                     alu_a_mux_sel = `ALUA_PC;
             endcase
+        `DECODE_3:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b11000011:            // jp n16
+                    alu_a_mux_sel = `ALUA_DIN;
+            endcase
     endcase
 end
 
@@ -247,7 +265,8 @@ begin
     (* parallel_case *)
     casex (state_reg)
         `INSTR_FETCH_1A,
-        `INSTR_FETCH_2A:
+        `INSTR_FETCH_2A,
+        `INSTR_FETCH_3A:
             alu_b_mux_sel = `ALUB_ONE; // increment pc
         `DECODE_1:
             (* parallel_case *)
@@ -279,11 +298,13 @@ end
 always @*
 begin
     alu_op_sel = `ALU_A_PASS; // set the default value
+    // TODO: could maybe get rid of the case statements below that use ALU_A_PASS since it's the default
     
     (* parallel_case *)
     casex (state_reg)
         `INSTR_FETCH_1A,
-        `INSTR_FETCH_2A:
+        `INSTR_FETCH_2A,
+        `INSTR_FETCH_3A:
             alu_op_sel = `ALU_ADD_WORD; // increment pc
         `DECODE_1:
             (* parallel_case *)
@@ -309,6 +330,12 @@ begin
                 8'b00011000,               // jr s8
                 8'b00100000:               // jr nz, s8
                     alu_op_sel = `ALU_ADD_WORD;
+            endcase
+        `DECODE_3:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b11000011:
+                    alu_op_sel = `ALU_A_PASS;
             endcase
     endcase
 end
@@ -345,8 +372,15 @@ begin
                 8'b00100000,                   // jr nz, s8
                 8'b00100110,                   // ld h,n8
                 8'b00101110,                   // ld l,n8
-                8'b00111110:                   // ld a,n8
+                8'b00111110,                   // ld a,n8
+                8'b11000011:                  // jp n16
                     ld_din_enable = `DIN_BOTH;
+            endcase
+        `INSTR_FETCH_3B:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b11000011:                   // jp n16
+                    ld_din_enable = `DIN_DIN1;
             endcase
         // TODO: for ld a,[hl] should I load [hl] into both din0 and din1, followed by moving alu_out_bus to a?
     endcase
@@ -396,6 +430,12 @@ begin
                     ld_reg_enable = `LD_REG_A;
                 //8'b00100001:     // ld hl,n16 // TODO:
                 //    ld_reg_enable = `LD_REG_HL;
+            endcase
+        `DECODE_3:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b11000011:           // jp n16
+                    ld_reg_enable = `LD_REG_PC;
             endcase
         `EXEC_1C:
             (* parallel_case *)
