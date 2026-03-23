@@ -232,6 +232,8 @@ begin
                 8'b0011110x,        // inc a or dec a
                 8'b10101111:        // xor a, a
                     alu_a_mux_sel = `ALUA_A;
+                8'b00010011:        // inc de
+                    alu_a_mux_sel = `ALUA_DE;
             endcase
         `DECODE_2:
             (* parallel_case *)
@@ -276,6 +278,7 @@ begin
             casex (instr_reg)
                 8'b0000010x,        // inc b or dec b
                 8'b0000110x,        // inc c or dec c
+                8'b00010011,        // inc de
                 8'b0001010x,        // inc d or dec d
                 8'b0001110x,        // inc e or dec e
                 8'b0010010x,        // inc h or dec h
@@ -312,6 +315,8 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010011:                 // inc de
+                    alu_op_sel = `ALU_ADD_WORD;
                 8'b00xxx100:                 // inc r8, will also trigger for inc [hl] but it won't matter
                     alu_op_sel = `ALU_ADD_BYTE;
                 8'b00xxx101:                 // dec r8, will also trigger for dec [hl] but it won't matter
@@ -412,6 +417,8 @@ begin
                     ld_reg_enable = `LD_REG_B | `LD_UPD_REG_F;
                 8'b0000110x:        // inc c or dec c
                     ld_reg_enable = `LD_REG_C | `LD_UPD_REG_F;
+                8'b00010011:        // inc de   (does not update any flags)
+                    ld_reg_enable = `LD_REG_DE;
                 8'b0001010x:        // inc d or dec d
                     ld_reg_enable = `LD_REG_D | `LD_UPD_REG_F;
                 8'b0001110x:        // inc e or dec e
@@ -471,6 +478,7 @@ begin
             casex (instr_reg)
                 8'b0000010x,        // inc b or dec b
                 8'b0000110x,        // inc c or dec c
+                                    // inc de does not set any flags
                 8'b0001010x,        // inc d or dec d
                 8'b0001110x,        // inc e or dec e
                 8'b0010010x,        // inc h or dec h

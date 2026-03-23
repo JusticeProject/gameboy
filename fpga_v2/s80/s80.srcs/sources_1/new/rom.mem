@@ -1,8 +1,9 @@
 @0000
-11 01 80    // ld de, $8001
-C3 06 00    // jp $0006
-3E 03       // ld a,3
+11 FF 7F    // ld de, $7FFF
 AF          // xor a,a
+13          // inc de
+C3 08 00    // jp $0008
+3E 03       // ld a,3
 3E 02       // ld a,2
 3D          // dec a
 20 FD       // jr nz, -3
