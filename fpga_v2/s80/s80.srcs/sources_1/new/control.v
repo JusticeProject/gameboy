@@ -215,7 +215,8 @@ begin
                 8'b0001110x,        // inc e or dec e
                 8'b0010010x,        // inc h or dec h
                 8'b0010110x,        // inc l or dec l
-                8'b0011110x:        // inc a or dec a
+                8'b0011110x,        // inc a or dec a
+                8'b10101111:        // xor a, a
                     alu_a_mux_sel = `ALUA_A;
             endcase
         `DECODE_2:
@@ -259,6 +260,8 @@ begin
                 8'b0010110x,        // inc l or dec l
                 8'b0011110x:        // inc a or dec a
                     alu_b_mux_sel = `ALUB_ONE;
+                8'b10101111:        // xor a, a
+                    alu_b_mux_sel = `ALUB_A;
             endcase
         `EXEC_1C:
             (* parallel_case *)
@@ -289,6 +292,8 @@ begin
                     alu_op_sel = `ALU_ADD_BYTE;
                 8'b00xxx101:                 // dec r8, will also trigger for dec [hl] but it won't matter
                     alu_op_sel = `ALU_SUB_BYTE;
+                8'b10101111:                 // xor a, a
+                    alu_op_sel = `ALU_XOR_BYTE;
             endcase
         `DECODE_2:
             (* parallel_case *)
@@ -377,6 +382,8 @@ begin
                     ld_reg_enable = `LD_REG_L | `LD_UPD_REG_F;
                 8'b0011110x:        // inc a or dec a
                     ld_reg_enable = `LD_REG_A | `LD_UPD_REG_F;
+                8'b10101111:        // xor a, a
+                    ld_reg_enable = `LD_REG_A | `LD_UPD_REG_F;
             endcase
         `DECODE_2:
             (* parallel_case *)
@@ -420,7 +427,8 @@ begin
                 8'b0001110x,        // inc e or dec e
                 8'b0010010x,        // inc h or dec h
                 8'b0010110x,        // inc l or dec l
-                8'b0011110x:        // inc a or dec a
+                8'b0011110x,        // inc a or dec a
+                8'b10101111:        // xor a, a
                     z_flag_enable = 1'b1;
             endcase
     endcase

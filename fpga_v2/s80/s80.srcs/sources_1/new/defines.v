@@ -109,22 +109,24 @@
 `define ALUA_SP             10'b1000000000
 
 // ALU B Mux selector
-`define ALUB_IDX 2
-`define ALUB_ZERO           3'b000
-`define ALUB_ONE            3'b001
-`define ALUB_DIN            3'b010
-`define ALUB_DIN0_SIGN_EXT  3'b100
+`define ALUB_IDX 3
+`define ALUB_ZERO           4'b0000
+`define ALUB_ONE            4'b0001
+`define ALUB_DIN            4'b0010
+`define ALUB_DIN0_SIGN_EXT  4'b0100
+`define ALUB_A              4'b1000
 
 //*************************************************************************************************
 
 // ALU Math operations
-`define ALU_OP_IDX 4
-`define ALU_A_PASS       5'b00000
-`define ALU_B_PASS       5'b00001
-`define ALU_ADD_WORD     5'b00010
-`define ALU_ADD_BYTE     5'b00100
-`define ALU_SUB_WORD     5'b01000
-`define ALU_SUB_BYTE     5'b10000
+`define ALU_OP_IDX 5
+`define ALU_A_PASS       6'b000000
+`define ALU_B_PASS       6'b000001
+`define ALU_ADD_WORD     6'b000010
+`define ALU_ADD_BYTE     6'b000100
+`define ALU_SUB_WORD     6'b001000
+`define ALU_SUB_BYTE     6'b010000
+`define ALU_XOR_BYTE     6'b100000
 
 //*************************************************************************************************
 //*************************************************************************************************
@@ -148,6 +150,7 @@
 `define LD_REG_L      11'b00100000000
 `define LD_REG_HL     11'b00110000000
 `define LD_REG_PC     11'b01000000000
+`define LD_REG_SP     11'b10000000000
 
 `define LD_A          0
 `define LD_F          1

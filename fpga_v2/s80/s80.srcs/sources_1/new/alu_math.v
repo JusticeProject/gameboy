@@ -29,6 +29,8 @@ begin
             alu_math_out = alu_a_in - alu_b_in;
         `ALU_SUB_BYTE:
             alu_math_out = alu_a_in - alu_b_in;
+        `ALU_XOR_BYTE:
+            alu_math_out = alu_a_in ^ alu_b_in;
         default:
             alu_math_out = 16'h0000;
     endcase
@@ -45,7 +47,8 @@ begin
         `ALU_SUB_WORD:
             z_flag_next = ~|alu_math_out[15:0]; // OR all of the bits together, then NOT it
         `ALU_ADD_BYTE,
-        `ALU_SUB_BYTE:
+        `ALU_SUB_BYTE,
+        `ALU_XOR_BYTE:
             z_flag_next = ~|alu_math_out[7:0];
     endcase
 end

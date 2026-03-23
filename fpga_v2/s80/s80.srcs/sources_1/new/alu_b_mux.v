@@ -6,6 +6,7 @@ module alu_b_mux(
     
     // the various sources of input data
     input wire [15:0] din_reg,
+    input wire [7:0] a_reg,
 
     // the output data
     output reg [15:0] alu_b_mux_out
@@ -26,6 +27,8 @@ begin
         `ALUB_DIN0_SIGN_EXT:
             // Could use the replication feature but this seems clearer. We output din0 but sign extended to fill 16 bits.
             alu_b_mux_out = {din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7:0]};
+        `ALUB_A:
+            alu_b_mux_out = {8'b00, a_reg};
         default:
             alu_b_mux_out = 16'h0000;
     endcase

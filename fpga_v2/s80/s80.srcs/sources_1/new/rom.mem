@@ -1,5 +1,7 @@
 @0000
 3E 03       // ld a,3
+AF          // xor a,a
+3E 02       // ld a,2
 3D          // dec a
 20 FD       // jr nz, -3
 00          // nop
