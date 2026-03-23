@@ -64,6 +64,7 @@ begin
         `DECODE_1:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010001,              // ld de, n16
                 8'b00xxx110,              // ld r8,n8 or ld [hl],n8
                 8'b00011000,              // jr s8
                 8'b00100000,              // jr nz, s8
@@ -88,6 +89,7 @@ begin
         `DECODE_2:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010001,                // ld de, n16
                 8'b00011000,                // jr s8
                 8'b11000011:                // jp n16
                     state_next = `sIDLE_2;
@@ -249,6 +251,7 @@ begin
         `DECODE_3:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010001,            // ld de, n16
                 8'b11000011:            // jp n16
                     alu_a_mux_sel = `ALUA_DIN;
             endcase
@@ -334,7 +337,8 @@ begin
         `DECODE_3:
             (* parallel_case *)
             casex (instr_reg)
-                8'b11000011:
+                8'b00010001,              // ld de, n16
+                8'b11000011:              // jp n16
                     alu_op_sel = `ALU_A_PASS;
             endcase
     endcase
@@ -368,6 +372,7 @@ begin
         `INSTR_FETCH_2B:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010001,                   // ld de, n16
                 8'b00011000,                   // jr s8
                 8'b00100000,                   // jr nz, s8
                 8'b00100110,                   // ld h,n8
@@ -379,6 +384,7 @@ begin
         `INSTR_FETCH_3B:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010001,                   // ld de, n16
                 8'b11000011:                   // jp n16
                     ld_din_enable = `DIN_DIN1;
             endcase
@@ -434,6 +440,8 @@ begin
         `DECODE_3:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00010001:           // ld de, n16
+                    ld_reg_enable = `LD_REG_DE;
                 8'b11000011:           // jp n16
                     ld_reg_enable = `LD_REG_PC;
             endcase
