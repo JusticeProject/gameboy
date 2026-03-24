@@ -57,13 +57,10 @@ wire ld_af_enable;
 wire update_f_from_alu_op;
 wire ld_b_enable;
 wire ld_c_enable;
-wire ld_bc_enable;
 wire ld_d_enable;
 wire ld_e_enable;
-wire ld_de_enable;
 wire ld_h_enable;
 wire ld_l_enable;
-wire ld_hl_enable;
 wire ld_pc_enable;
 wire ld_sp_enable;
 
@@ -147,13 +144,10 @@ assign ld_af_enable = ld_reg_enable[`LD_A] && ld_reg_enable[`LD_F];
 assign update_f_from_alu_op = ld_reg_enable[`UPD_F];
 assign ld_b_enable = ld_reg_enable[`LD_B];
 assign ld_c_enable = ld_reg_enable[`LD_C];
-assign ld_bc_enable = ld_reg_enable[`LD_B] && ld_reg_enable[`LD_C];
 assign ld_d_enable = ld_reg_enable[`LD_D];
 assign ld_e_enable = ld_reg_enable[`LD_E];
-assign ld_de_enable = ld_reg_enable[`LD_D] && ld_reg_enable[`LD_E];
 assign ld_h_enable = ld_reg_enable[`LD_H];
 assign ld_l_enable = ld_reg_enable[`LD_L];
-assign ld_hl_enable = ld_reg_enable[`LD_H] && ld_reg_enable[`LD_L];
 assign ld_pc_enable = ld_reg_enable[`LD_PC];
 assign ld_sp_enable = ld_reg_enable[`LD_SP];
 
@@ -192,7 +186,7 @@ begin
             
             
             
-            if (ld_bc_enable)
+            if (ld_b_enable && ld_c_enable)
                 begin
                     b_reg <= alu_out_bus[15:8];
                     c_reg <= alu_out_bus[7:0];
@@ -204,7 +198,7 @@ begin
             
             
             
-            if (ld_de_enable)
+            if (ld_d_enable && ld_e_enable)
                 begin
                     d_reg <= alu_out_bus[15:8];
                     e_reg <= alu_out_bus[7:0];
@@ -216,7 +210,7 @@ begin
             
             
             
-            if (ld_hl_enable)
+            if (ld_h_enable && ld_l_enable)
                 begin
                     h_reg <= alu_out_bus[15:8];
                     l_reg <= alu_out_bus[7:0];

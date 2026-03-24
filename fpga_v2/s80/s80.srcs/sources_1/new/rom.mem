@@ -1,4 +1,7 @@
 @0000
+21 34 12    // ld hl, $1234
+01 55 66    // ld bc, $6655
+31 FF EE    // ld sp, $EEFF
 11 06 00    // ld de, $0006
 1A          // ld a,[de]
 AF          // xor a,a
