@@ -1,5 +1,6 @@
 @0000
-11 FF 7F    // ld de, $7FFF
+11 06 00    // ld de, $0006
+1A          // ld a,[de]
 AF          // xor a,a
 13          // inc de
 C3 08 00    // jp $0008

@@ -5,8 +5,7 @@ module control(
     input wire resetb,
     
     // output control signals
-    output reg pc_out_enable,
-    output reg hl_out_enable,
+    output reg [`MEM_ADDR_OUT_IDX:0] mem_addr_out_enable,
     output reg a_out_enable,
     output reg mem_wr_enable,
     
@@ -65,6 +64,7 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b00010001,              // ld de, n16
+                8'b00011010,              // ld a, [de]
                 8'b00xxx110,              // ld r8,n8 or ld [hl],n8
                 8'b00011000,              // jr s8
                 8'b00100000,              // jr nz, s8
@@ -77,6 +77,7 @@ begin
         `IDLE_1:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00011010,              // ld a, [de]
                 8'b01110111:              // ld [hl],a
                     state_next = `sEXEC_1A;
                 default:
@@ -141,9 +142,7 @@ end
 // output control signals for mem_addr
 always @*
 begin
-    // TODO: do I want to combine these signals into a bus? Are there other registers that go out to the mem_addr bus?
-    pc_out_enable = 1'b0; // by default don't put anything onto the mem_addr bus
-    hl_out_enable = 1'b0;
+    mem_addr_out_enable = `NO_ADDR_OUT; // by default don't put anything onto the mem_addr bus
                 
     (* parallel_case *)
     casex (state_reg)
@@ -156,14 +155,16 @@ begin
         `DONE:
             begin
                 // send the pc out onto the mem_addr bus on the NEXT clock cycle
-                pc_out_enable = 1'b1;
+                mem_addr_out_enable = `PC_OUT;
             end
         `EXEC_1A:
             (* parallel_case *)
             casex (instr_reg)
+                8'b00011010:                 // ld a, [de]
+                    mem_addr_out_enable = `DE_OUT;
                 8'b01110111:                 // ld [hl],a
                     // send the hl register onto the mem_addr bus
-                    hl_out_enable = 1'b1;
+                    mem_addr_out_enable = `HL_OUT;
             endcase
     endcase
 end
@@ -257,6 +258,12 @@ begin
                 8'b11000011:            // jp n16
                     alu_a_mux_sel = `ALUA_DIN;
             endcase
+        `DONE:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00011010:             // ld a, [de]
+                    alu_a_mux_sel = `ALUA_DIN;
+            endcase
     endcase
 end
 
@@ -346,6 +353,12 @@ begin
                 8'b11000011:              // jp n16
                     alu_op_sel = `ALU_A_PASS;
             endcase
+        `DONE:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00011010:                // ld a, [de]
+                    alu_op_sel = `ALU_A_PASS;
+            endcase
     endcase
 end
 
@@ -393,7 +406,12 @@ begin
                 8'b11000011:                   // jp n16
                     ld_din_enable = `DIN_DIN1;
             endcase
-        // TODO: for ld a,[hl] should I load [hl] into both din0 and din1, followed by moving alu_out_bus to a?
+        `EXEC_1C:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00011010:                   // ld a, [de]
+                    ld_din_enable = `DIN_DIN0;
+            endcase
     endcase
 end
 
@@ -458,6 +476,12 @@ begin
                 8'b00011000,           // jr s8
                 8'b00100000:           // jr nz, s8
                     ld_reg_enable = `LD_REG_PC;
+            endcase
+        `DONE:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b00011010:           // ld a, [de]
+                    ld_reg_enable = `LD_REG_A;
             endcase
     endcase
 end

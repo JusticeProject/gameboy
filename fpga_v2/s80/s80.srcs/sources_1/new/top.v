@@ -6,8 +6,7 @@ module top(
 );
 
 // output control signals
-wire pc_out_enable;
-wire hl_out_enable;
+wire [`MEM_ADDR_OUT_IDX:0] mem_addr_out_enable;
 wire a_out_enable;
 wire mem_wr_enable;
 
@@ -37,7 +36,7 @@ wire [7:0] mem_data_rd;
 
 // instantiate the control unit
 control CONTROL_UNIT (.clk(clk), .resetb(resetb),
-                      .pc_out_enable(pc_out_enable), .hl_out_enable(hl_out_enable), .a_out_enable(a_out_enable), .mem_wr_enable(mem_wr_enable), 
+                      .mem_addr_out_enable(mem_addr_out_enable), .a_out_enable(a_out_enable), .mem_wr_enable(mem_wr_enable), 
                       .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
                       .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
                       .z_flag_enable(z_flag_enable),
@@ -45,7 +44,7 @@ control CONTROL_UNIT (.clk(clk), .resetb(resetb),
 
 // instantiate the datapath unit
 datapath DATAPATH_UNIT (.clk(clk), .resetb(resetb), 
-                        .pc_out_enable(pc_out_enable), .hl_out_enable(hl_out_enable), .a_out_enable(a_out_enable),
+                        .mem_addr_out_enable(mem_addr_out_enable), .a_out_enable(a_out_enable),
                         .ld_instr_enable(ld_instr_enable), .ld_din_enable(ld_din_enable), .ld_reg_enable(ld_reg_enable),
                         .alu_a_mux_sel(alu_a_mux_sel), .alu_b_mux_sel(alu_b_mux_sel), .alu_op_sel(alu_op_sel),
                         .z_flag_enable(z_flag_enable),

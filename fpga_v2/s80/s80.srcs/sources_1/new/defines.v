@@ -81,6 +81,17 @@
 //*************************************************************************************************
 //*************************************************************************************************
 
+// memory address output control
+`define MEM_ADDR_OUT_IDX 2
+`define NO_ADDR_OUT   3'b000
+`define PC_OUT        3'b001      // put pc out onto the mem_addr bus
+`define DE_OUT        3'b010      // put de out onto the mem_addr bus
+`define HL_OUT        3'b100      // put hl out onto the mem_addr bus
+
+//*************************************************************************************************
+//*************************************************************************************************
+//*************************************************************************************************
+
 // data input control
 `define DIN_NONE      2'b00            // No load
 `define DIN_DIN0      2'b01            // Load din0
@@ -133,7 +144,6 @@
 //*************************************************************************************************
 
 // Load register control
-// TODO: could move PC to have its own signal
 `define LD_REG_IDX 10
 `define LD_REG_NONE   11'b00000000000
 `define LD_REG_A      11'b00000000001

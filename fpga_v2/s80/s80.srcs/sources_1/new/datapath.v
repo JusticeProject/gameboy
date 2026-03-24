@@ -5,8 +5,7 @@ module datapath(
     input wire resetb,
     
     // output control signals
-    input wire pc_out_enable,
-    input wire hl_out_enable,
+    input wire [`MEM_ADDR_OUT_IDX:0] mem_addr_out_enable,
     input wire a_out_enable,
     
     // load control signals
@@ -84,10 +83,18 @@ always @(negedge resetb, posedge clk)
 begin
     if (!resetb)
         mem_addr <= 16'h0000;
-    else if (pc_out_enable)
-        mem_addr <= pc_reg;
-    else if (hl_out_enable)
-        mem_addr <= {h_reg, l_reg};
+    else
+        begin
+            case (mem_addr_out_enable)
+                `PC_OUT:
+                    mem_addr <= pc_reg;
+                `DE_OUT:
+                    mem_addr <= {d_reg, e_reg};
+                `HL_OUT:
+                    mem_addr <= {h_reg, l_reg};
+                // in the default case the mem_addr bus will remain unchanged, so we don't need to do anything
+            endcase
+        end
 end
 
 //*************************************************************************************************
