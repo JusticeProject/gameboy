@@ -1,19 +1,20 @@
 @0000
+2E 01       // ld l,$01
+26 80       // ld h,$80
+22          // ld [hli],a
+3E 03       // ld a,3
+77          // ld [hl],a
 21 34 12    // ld hl, $1234
 01 55 66    // ld bc, $6655
 31 FF EE    // ld sp, $EEFF
-11 06 00    // ld de, $0006
+11 07 00    // ld de, $0007
+C3 18 00    // jp $0018
+00          // nop
 1A          // ld a,[de]
 AF          // xor a,a
 13          // inc de
-C3 08 00    // jp $0008
-3E 03       // ld a,3
 3E 02       // ld a,2
 3D          // dec a
 20 FD       // jr nz, -3
-00          // nop
-2E 01       // ld l,$01
-26 80       // ld h,$80
-77          // ld [hl],a
 3C          // inc a
 18 FD       // jr -3
