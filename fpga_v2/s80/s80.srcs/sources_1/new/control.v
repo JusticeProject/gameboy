@@ -70,6 +70,7 @@ begin
                 8'b00011000,              // jr s8
                 8'b00100000,              // jr nz, s8
                 8'b01110111,              // ld [hl],a
+                8'b01111110,              // ld a, [hl]
                 8'b11000011:              // jp n16
                     state_next = `sIDLE_1;
                 default:
@@ -80,6 +81,7 @@ begin
             casex (instr_reg)
                 8'b00011010,              // ld a, [de]
                 8'b00100010,              // ld [hli], a
+                8'b01111110,              // ld a, [hl]
                 8'b01110111:              // ld [hl],a
                     state_next = `sEXEC_1A;
                 default:
@@ -165,7 +167,8 @@ begin
                 8'b00011010:                 // ld a, [de]
                     mem_addr_out_enable = `DE_OUT;
                 8'b00100010,                 // ld [hli], a
-                8'b01110111:                 // ld [hl], a
+                8'b01110111,                 // ld [hl], a
+                8'b01111110:                 // ld a, [hl]
                     mem_addr_out_enable = `HL_OUT; // send the hl register onto the mem_addr bus
             endcase
     endcase
@@ -229,12 +232,25 @@ begin
             (* parallel_case *)
             casex (instr_reg)
                 8'b0000010x,        // inc b or dec b
+                8'b01111000:        // ld a, b
+                    alu_a_mux_sel = `ALUA_B;
                 8'b0000110x,        // inc c or dec c
+                8'b01111001:        // ld a, c
+                    alu_a_mux_sel = `ALUA_C;
                 8'b0001010x,        // inc d or dec d
+                8'b01111010:        // ld a, d
+                    alu_a_mux_sel = `ALUA_D;
                 8'b0001110x,        // inc e or dec e
+                8'b01111011:        // ld a, e
+                    alu_a_mux_sel = `ALUA_E;
                 8'b0010010x,        // inc h or dec h
+                8'b01111100:        // ld a, h
+                    alu_a_mux_sel = `ALUA_H;
                 8'b0010110x,        // inc l or dec l
+                8'b01111101:        // ld a, l
+                    alu_a_mux_sel = `ALUA_L;
                 8'b0011110x,        // inc a or dec a
+                8'b01111111,        // ld a, a
                 8'b10101111:        // xor a, a
                     alu_a_mux_sel = `ALUA_A;
                 8'b00010011:        // inc de
@@ -267,7 +283,8 @@ begin
         `DONE:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011010:             // ld a, [de]
+                8'b00011010,             // ld a, [de]
+                8'b01111110:             // ld a, [hl]
                     alu_a_mux_sel = `ALUA_DIN;
             endcase
     endcase
@@ -365,7 +382,8 @@ begin
         `DONE:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011010:                // ld a, [de]
+                8'b00011010,                // ld a, [de]
+                8'b01111110:                // ld a, [hl]
                     alu_op_sel = `ALU_A_PASS;
             endcase
     endcase
@@ -418,7 +436,8 @@ begin
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011010:                   // ld a, [de]
+                8'b00011010,                   // ld a, [de]
+                8'b01111110:                   // ld a, [hl]
                     ld_din_enable = `DIN_DIN0;
             endcase
     endcase
@@ -454,10 +473,17 @@ begin
                     ld_reg_enable = `LD_REG_H | `LD_UPD_REG_F;
                 8'b0010110x:        // inc l or dec l
                     ld_reg_enable = `LD_REG_L | `LD_UPD_REG_F;
-                8'b0011110x:        // inc a or dec a
-                    ld_reg_enable = `LD_REG_A | `LD_UPD_REG_F;
+                8'b0011110x,        // inc a or dec a
                 8'b10101111:        // xor a, a
                     ld_reg_enable = `LD_REG_A | `LD_UPD_REG_F;
+                8'b01111000,        // ld a, b
+                8'b01111001,        // ld a, c
+                8'b01111010,        // ld a, d
+                8'b01111011,        // ld a, e
+                8'b01111100,        // ld a, h
+                8'b01111101,        // ld a, l
+                8'b01111111:        // ld a, a
+                    ld_reg_enable = `LD_REG_A;
             endcase
         `DECODE_2:
             (* parallel_case *)
@@ -468,8 +494,6 @@ begin
                     ld_reg_enable = `LD_REG_L;
                 8'b00111110:     // ld a,n8
                     ld_reg_enable = `LD_REG_A;
-                //8'b00100001:     // ld hl,n16 // TODO:
-                //    ld_reg_enable = `LD_REG_HL;
             endcase
         `DECODE_3:
             (* parallel_case *)
@@ -497,7 +521,8 @@ begin
         `DONE:
             (* parallel_case *)
             casex (instr_reg)
-                8'b00011010:           // ld a, [de]
+                8'b00011010,           // ld a, [de]
+                8'b01111110:           // ld a, [hl]
                     ld_reg_enable = `LD_REG_A;
             endcase
     endcase
