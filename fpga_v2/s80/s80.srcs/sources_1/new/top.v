@@ -34,6 +34,9 @@ wire [7:0] mem_data_rd;
 
 //*************************************************************************************************
 
+// TODO: instantiate the clocking wizard.
+// TODO: Use clock gating to reduce power? See Digital VLSI Design on YouTube, lecture 4e
+
 // instantiate the control unit
 control CONTROL_UNIT (.clk(clk), .resetb(resetb),
                       .mem_addr_out_enable(mem_addr_out_enable), .a_out_enable(a_out_enable), .mem_wr_enable(mem_wr_enable), 

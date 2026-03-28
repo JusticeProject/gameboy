@@ -75,6 +75,8 @@ begin
             mem_addr_next = {d_reg, e_reg};
         `HL_OUT:
             mem_addr_next = {h_reg, l_reg};
+        `DIN_OUT:
+            mem_addr_next = {din1, din0};
         default:
             mem_addr_next = mem_addr; // by default it will stay the same
     endcase
@@ -292,6 +294,8 @@ alu_b_mux ALU_B_MUX_UNIT (.alu_b_mux_sel(alu_b_mux_sel),
                           .alu_b_mux_out(alu_b_in));
 
 alu_math ALU_MATH_UNIT (.alu_a_in(alu_a_in), .alu_b_in(alu_b_in), .alu_op_sel(alu_op_sel), .z_flag_next(z_flag_next), .alu_math_out(alu_out_bus));
+
+// TODO: if there are more ALU units then use an enable signal so they aren't calculating when they're not being used?
 
 
 endmodule

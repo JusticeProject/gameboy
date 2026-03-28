@@ -82,11 +82,12 @@
 //*************************************************************************************************
 
 // memory address output control
-`define MEM_ADDR_OUT_IDX 2
-`define NO_ADDR_OUT   3'b000
-`define PC_OUT        3'b001      // put pc out onto the mem_addr bus
-`define DE_OUT        3'b010      // put de out onto the mem_addr bus
-`define HL_OUT        3'b100      // put hl out onto the mem_addr bus
+`define MEM_ADDR_OUT_IDX 3
+`define NO_ADDR_OUT   4'b0000
+`define PC_OUT        4'b0001      // put pc out onto the mem_addr bus
+`define DE_OUT        4'b0010      // put de out onto the mem_addr bus
+`define HL_OUT        4'b0100      // put hl out onto the mem_addr bus
+`define DIN_OUT       4'b1000      // put din1,din0 onto the mem_addr bus
 
 //*************************************************************************************************
 //*************************************************************************************************
