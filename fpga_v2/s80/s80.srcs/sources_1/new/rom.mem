@@ -1,5 +1,9 @@
 @0000
 3E 03       // ld a, 3
+FE 05       // cp a, 5   (compare)
+3E 04       // ld a, 4
+3C          // inc a
+FE 05       // cp a, 5   (compare)
 EA 02 80    // ld [$8002], a
 AF          // xor a, a
 FA 02 80    // ld a, [$8002]

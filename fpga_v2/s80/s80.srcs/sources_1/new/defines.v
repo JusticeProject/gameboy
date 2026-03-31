@@ -121,12 +121,13 @@
 `define ALUA_SP             10'b1000000000
 
 // ALU B Mux selector
-`define ALUB_IDX 3
-`define ALUB_ZERO           4'b0000
-`define ALUB_ONE            4'b0001
-`define ALUB_DIN            4'b0010
-`define ALUB_DIN0_SIGN_EXT  4'b0100
-`define ALUB_A              4'b1000
+`define ALUB_IDX 4
+`define ALUB_ZERO           5'b00000
+`define ALUB_ONE            5'b00001
+`define ALUB_DIN            5'b00010     // {din1, din0}
+`define ALUB_DIN0           5'b00100     // {8'h00, din0}
+`define ALUB_DIN0_SIGN_EXT  5'b01000
+`define ALUB_A              5'b10000
 
 //*************************************************************************************************
 

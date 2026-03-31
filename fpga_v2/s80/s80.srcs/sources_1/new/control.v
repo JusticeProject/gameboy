@@ -73,7 +73,8 @@ begin
                 8'b01111110,              // ld a, [hl]
                 8'b11000011,              // jp n16
                 8'b11101010,              // ld [n16], a
-                8'b11111010:              // ld a, [n16]
+                8'b11111010,              // ld a, [n16]
+                8'b11111110:              // cp a, n8 (compare)
                     state_next = `sIDLE_1;
                 default:
                     state_next = `sDONE;
@@ -275,6 +276,8 @@ begin
                 8'b00101110,                  // ld l,n8
                 8'b00111110:                  // ld a,n8
                     alu_a_mux_sel = `ALUA_DIN;
+                8'b11111110:                  // cp a, n8 (compare)
+                    alu_a_mux_sel = `ALUA_A;
             endcase
         `EXEC_1C:
             (* parallel_case *)
@@ -331,6 +334,12 @@ begin
                 8'b10101111:        // xor a, a
                     alu_b_mux_sel = `ALUB_A;
             endcase
+        `DECODE_2:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b11111110:        // cp a, n8 (compare)
+                    alu_b_mux_sel = `ALUB_DIN0;
+            endcase
         `EXEC_1C:
             (* parallel_case *)
             casex (instr_reg)
@@ -376,6 +385,8 @@ begin
                 8'b00101110,                   // ld l,n8
                 8'b00111110:                   // ld a,n8
                     alu_op_sel = `ALU_A_PASS;
+                8'b11111110:                   // cp a, n8
+                    alu_op_sel = `ALU_SUB_BYTE;
             endcase
         `EXEC_1C:
             (* parallel_case *)
@@ -438,7 +449,8 @@ begin
                 8'b00101110,                   // ld l,n8
                 8'b00111110,                   // ld a,n8
                 8'b11000011,                   // jp n16
-                8'b11101010:                   // ld [n16], a
+                8'b11101010,                   // ld [n16], a
+                8'b11111110:                   // cp a, n8 (compare)
                     ld_din_enable = `DIN_DIN0;
             endcase
         `INSTR_FETCH_3B:
@@ -511,6 +523,8 @@ begin
                     ld_reg_enable = `LD_REG_L;
                 8'b00111110:     // ld a,n8
                     ld_reg_enable = `LD_REG_A;
+                8'b11111110:     // cp a, n8
+                    ld_reg_enable = `LD_UPD_REG_F;
             endcase
         `DECODE_3:
             (* parallel_case *)
@@ -569,6 +583,12 @@ begin
                 8'b0010110x,        // inc l or dec l
                 8'b0011110x,        // inc a or dec a
                 8'b10101111:        // xor a, a
+                    z_flag_enable = 1'b1;
+            endcase
+        `DECODE_2:
+            (* parallel_case *)
+            casex (instr_reg)
+                8'b11111110:        // cp a, n8 (compare)
                     z_flag_enable = 1'b1;
             endcase
     endcase

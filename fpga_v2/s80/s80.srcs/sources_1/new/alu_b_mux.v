@@ -24,6 +24,8 @@ begin
             alu_b_mux_out = 16'h0001;
         `ALUB_DIN:
             alu_b_mux_out = din_reg;
+        `ALUB_DIN0:
+            alu_b_mux_out = {8'h00, din_reg[7:0]};
         `ALUB_DIN0_SIGN_EXT:
             // Could use the replication feature but this seems clearer. We output din0 but sign extended to fill 16 bits.
             alu_b_mux_out = {din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7], din_reg[7:0]};
